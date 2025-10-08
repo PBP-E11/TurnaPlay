@@ -1,3 +1,5 @@
+# Collecstatic
+static_root
 # Django
 *.log
 *.pot
