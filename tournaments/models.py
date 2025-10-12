@@ -83,8 +83,8 @@ class Tournament(models.Model):
 
     # Team Counts
     # team_count will be managed programmatically (or via a separate registration model)
-    team_count = models.PositiveIntegerField(default=0, verbose_name=_("Current Team Count"))
-    team_maximum_count = models.PositiveIntegerField(verbose_name=_("Maximum Team Capacity")) # Constraint: team_maximum_count > 0 enforced by PositiveIntegerField
+    # team_count = models.PositiveIntegerField(default=0, verbose_name=_("Current Team Count"))
+    team_maximum_count = models.PositiveIntegerField(verbose_name=_("Maximum Team Capacity")) # Constraint: team_maximum_count > 0 enforced by clean and PositiveIntegerField
 
     class Meta:
         verbose_name = _("Tournament")
@@ -101,9 +101,7 @@ class Tournament(models.Model):
         Custom validation to enforce constraints that rely on multiple fields.
         Constraints:
         1. start_date < end_date
-        2. team_count <= team_maximum_count
-        3. team_maximum_count > 0 (handled by PositiveIntegerField, but checked for safety)
-        4. team_count >= 0 (handled by PositiveIntegerField)
+        2. team_maximum_count > 0 (handled by PositiveIntegerField, but checked for safety)
         """
         super().clean()
 
@@ -113,13 +111,7 @@ class Tournament(models.Model):
                 {'end_date': _('The tournament end date must be after the start date.')}
             )
 
-        # 2. Current teams cannot exceed maximum capacity
-        if self.team_count > self.team_maximum_count:
-            raise ValidationError(
-                {'team_count': _('Current team count cannot exceed the maximum team capacity.')}
-            )
-
-        # 3. Maximum team count must be at least 1 for a valid tournament (although PositiveIntegerField ensures > 0)
+        # 2. Maximum team count must be at least 1 for a valid tournament (although PositiveIntegerField ensures > 0)
         if self.team_maximum_count < 1:
             raise ValidationError(
                 {'team_maximum_count': _('A tournament must allow at least one team.')}
