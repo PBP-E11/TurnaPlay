@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tournaments',
-    'game_account'
+    'game_account',
+    'user_account',
 ]
 
 MIDDLEWARE = [
