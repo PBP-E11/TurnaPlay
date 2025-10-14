@@ -24,7 +24,6 @@ class TournamentFormat(models.Model):
     """
     Defines the structure and team size constraints of a tournament format.
     (e.g., 5v5 Single Elimination for League of Legends)
-    This is static data managed by Fahri.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     
@@ -54,7 +53,6 @@ class TournamentFormat(models.Model):
 class Tournament(models.Model):
     """
     Model representing a competitive tournament or competition.
-    This module is managed by Falah.
     """
     # PK ID (UUID4)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
