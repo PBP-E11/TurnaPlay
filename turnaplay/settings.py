@@ -44,6 +44,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'tournaments',
+    'game_account',
+    'user_account',
+    'tournament_registration',
 ]
 
 MIDDLEWARE = [
