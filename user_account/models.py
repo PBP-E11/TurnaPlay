@@ -125,7 +125,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     objects = UserAccountManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FEILD = ['email']
+    REQUIRED_FIELD = ['email']
 
     class Meta:
         """
