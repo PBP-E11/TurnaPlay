@@ -9,15 +9,15 @@ class UserAccountAdmin(BaseUserAdmin):
     Admin interface untuk UserAccount.
     """
     # Field yang ditampilkan di list
-    list_display = ['username', 'email', 'display_name', 'role', 'active', 'date_joined']
-    list_filter = ['role', 'active', 'date_joined']
+    list_display = ['username', 'email', 'display_name', 'role', 'is_active', 'date_joined']
+    list_filter = ['role', 'is_active', 'date_joined']
     search_fields = ['username', 'email', 'display_name']
     
     # Field yang bisa diedit
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal Info', {'fields': ('display_name', 'email')}),
-        ('Permissions', {'fields': ('role', 'active', 'is_active')}),
+        ('Permissions', {'fields': ('role', 'is_active')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     
