@@ -7,7 +7,6 @@ from django.core.exceptions import ValidationError
 class TournamentRegistration(models.Model):
     """
     Model representing a registration attempt (it can be complete or in progress), or in other words team details
-    This module is managed by Fahri
     """
 
     # PK id
@@ -50,7 +49,6 @@ class TournamentRegistration(models.Model):
 class TeamMember(models.Model):
     """
     A many to one relation for members that has joined a team
-    This module is managed by Fahri
     """
 
     # FK game_account.id

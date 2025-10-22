@@ -1,3 +1,11 @@
+import uuid
+from django.http import HttpRequest
 from django.shortcuts import render
+from .models import TournamentRegistration
 
-# Create your views here.
+def create_team(request: HttpRequest):
+    return render(request, 'team/forms.html')
+    pass
+
+def manage_team(request: HttpRequest, id: uuid):
+    pass
