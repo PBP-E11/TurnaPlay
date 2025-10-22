@@ -1,7 +1,78 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.utils import timezone
 import uuid
 
-class UserAccount(models.Model):
+class UserAccountManager(BaseUserManager):
+    """
+    Manager khusus untuk UserAccount.
+    
+    Manager ini menangani pembuatan user dan superuser.
+    Django memerlukan create_user() dan create_superuser() untuk autentikasi.
+    """
+    
+    def create_user(self, username, email, password=None, **extra_fields):
+        """
+        Membuat dan menyimpan User biasa.
+        
+        Args:
+            username: Username untuk login
+            email: Email user
+            password: Password plain text (akan di-hash otomatis)
+            **extra_fields: Field tambahan seperti display_name, role
+            
+        Returns:
+            UserAccount object yang sudah tersimpan
+        """
+        if not username:
+            raise ValueError('Username harus diisi')
+        if not email:
+            raise ValueError('Email harus diisi')
+        
+        # Normalize email (lowercase domain part)
+        email = self.normalize_email(email)
+        
+        # Set default display_name jika tidak ada
+        if 'display_name' not in extra_fields:
+            extra_fields['display_name'] = username
+        
+        # Set role default ke 'user' jika tidak dispesifikasi
+        if 'role' not in extra_fields:
+            extra_fields['role'] = 'user'
+        
+        # Buat instance user
+        user = self.model(
+            username=username,
+            email=email,
+            **extra_fields
+        )
+        
+        # set_password akan otomatis hash password
+        user.set_password(password)
+        user.save(using=self._db)
+        
+        return user
+    
+    def create_superuser(self, username, email, password=None, **extra_fields):
+        """
+        Membuat dan menyimpan Superuser (Admin).
+        
+        Dipanggil oleh command 'python manage.py createsuperuser'
+        """
+        # Set role ke admin
+        extra_fields['role'] = 'admin'
+        
+        # Buat user dengan method create_user
+        user = self.create_user(
+            username=username,
+            email=email,
+            password=password,
+            **extra_fields
+        )
+        
+        return user
+
+class UserAccount(AbstractBaseUser, PermissionsMixin):
     """
     Model untuk menyimpan data akun pengguna TurnaPlay.
     
@@ -31,13 +102,10 @@ class UserAccount(models.Model):
     
     # Username - untuk login dan mention di sistem
     # NOTE: Tidak menggunakan unique=True langsung karena ada constraint khusus
-    username = models.CharField(max_length=60)
+    username = models.CharField(max_length=60, unique=True)
     
     # Email - untuk login alternatif dan komunikasi
-    email = models.EmailField(max_length=254)
-    
-    # Password Hash - menyimpan hash password, bukan plain text
-    password_hash = models.CharField(max_length=255)
+    email = models.EmailField(max_length=254, unique=True)
     
     # Display Name - nama yang ditampilkan ke publik
     display_name = models.CharField(max_length=255)
@@ -47,8 +115,18 @@ class UserAccount(models.Model):
     
     # Active - untuk soft delete (tidak benar-benar hapus dari database)
     # False = akun dinonaktifkan/dihapus
-    active = models.BooleanField(default=True)
+    # required oleh django auth
+    is_active = models.BooleanField(default=True)
+
+    # Timestamp
+    date_joined = models.DateTimeField(auto_now_add=True)
+    last_login = models.DateTimeField(null=True, blank=True)
     
+    objects = UserAccountManager()
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FEILD = ['email']
+
     class Meta:
         """
         Meta options untuk model UserAccount.
@@ -58,25 +136,8 @@ class UserAccount(models.Model):
         - Ini memungkinkan username/email yang sama digunakan lagi 
           setelah akun dihapus (inactive)
         """
-        constraints = [
-            # Constraint: Username harus unik hanya jika akun aktif
-            # Contoh: user 'john' bisa dihapus (active=False), 
-            # lalu username 'john' bisa dipakai user baru
-            models.UniqueConstraint(
-                fields=['username'],
-                condition=models.Q(active=True),
-                name='unique_active_username'
-            ),
-            # Constraint: Email harus unik hanya jika akun aktif
-            models.UniqueConstraint(
-                fields=['email'],
-                condition=models.Q(active=True),
-                name='unique_active_email'
-            )
-        ]
-        
         # Ordering default saat query
-        ordering = ['-id']  # Terbaru dulu
+        ordering = ['-date_joined'] 
         
         # Nama model di Django Admin
         verbose_name = 'User Account'
@@ -121,3 +182,47 @@ class UserAccount(models.Model):
             bool: True jika role adalah 'organizer'
         """
         return self.role == 'organizer'
+    
+    @property
+    def is_staff(self):
+        """
+        Property required oleh Django Admin.
+        
+        Django Admin mengecek is_staff untuk menentukan siapa yang boleh
+        akses admin panel di /admin/.
+        
+        Hanya user dengan role='admin' yang bisa akses Django Admin.
+        
+        Returns:
+            bool: True jika role adalah 'admin'
+        """
+        return self.role == 'admin'
+    
+    def has_perm(self, perm, obj=None):
+        """
+        Required oleh Django Admin untuk permission checking.
+        
+        Admin memiliki semua permission.
+        
+        Args:
+            perm: Permission string (e.g., 'app.add_model')
+            obj: Optional object untuk object-level permission
+            
+        Returns:
+            bool: True jika user adalah admin
+        """
+        return self.is_admin()
+    
+    def has_module_perms(self, app_label):
+        """
+        Required oleh Django Admin untuk module-level permission.
+        
+        Admin bisa akses semua module/app.
+        
+        Args:
+            app_label: Nama app (e.g., 'tournament', 'user_account')
+            
+        Returns:
+            bool: True jika user adalah admin
+        """
+        return self.is_admin()
