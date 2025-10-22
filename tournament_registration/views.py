@@ -5,7 +5,6 @@ from .models import TournamentRegistration
 
 def create_team(request: HttpRequest):
     return render(request, 'team/forms.html')
-    pass
 
 def manage_team(request: HttpRequest, id: uuid):
     pass
