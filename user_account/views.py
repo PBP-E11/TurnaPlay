@@ -66,7 +66,7 @@ def admin_manage_users(request):
         'status_filter': status_filter,
     }
     
-    return render(request, 'user_account/admin/manage_users.html', context)
+    return render(request, 'admin/manage_users.html', context)
 
 @login_required
 @require_http_methods(["GET", "POST"])
@@ -87,7 +87,7 @@ def admin_create_organizer(request):
         form = CreateOrganizerForm()
     
     context = {'form': form}
-    return render(request, 'user_account/admin/create_organizer.html', context)
+    return render(request, 'admin/create_organizer.html', context)
 
 @login_required
 def admin_user_detail(request, user_id):
@@ -105,7 +105,7 @@ def admin_user_detail(request, user_id):
         'tournaments': tournaments,
     }
     
-    return render(request, 'user_account/admin/user_detail.html', context)
+    return render(request, 'admin/user_detail.html', context)
 
 @login_required
 @require_http_methods(["POST"])
