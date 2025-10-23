@@ -1,0 +1,121 @@
+{% extends 'base.html' %} {% load static %} {% block content %} {% include 'navbar.html' %}
+
+<div class="max-w-3xl mx-auto px-4 py-12">
+  <div class="bg-white rounded-2xl shadow-xl border border-black p-10">
+    <h1 class="text-3xl font-bold text-center text-indigo-700">{{ title }}</h1>
+
+    <form method="post" novalidate class="mt-8 space-y-6">
+      {% csrf_token %}
+      <div
+        class="bg-white border border-gray-600 rounded-lg p-4 shadow-xs focus-within:ring-2 focus-within:ring-indigo-200"
+      >
+        <label
+          for="{{ form.game.id_for_label }}"
+          class="block text-sm font-semibold text-gray-700 mb-2"
+          >{{ form.game.label }}</label
+        >
+        <div class="mt-1">{{ form.game }}</div>
+        {% if form.game.help_text %}
+        <p class="text-xs text-gray-500 mt-1">{{ form.game.help_text }}</p>
+        {% endif %} {% for error in form.game.errors %}
+        <p class="text-sm text-rose-600 font-medium mt-1">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      {% for field in form %} 
+      {% if field.name != 'game' %}
+      <div
+        class="bg-white border border-gray-600 rounded-lg p-4 shadow-xs focus-within:ring-2 focus-within:ring-indigo-200"
+      >
+        <label
+          for="{{ field.id_for_label }}"
+          class="block text-sm font-semibold text-gray-700 mb-2"
+          >{{ field.label }}</label
+        >
+        <div class="mt-1">{{ field }}</div>
+
+        {% if field.help_text %}
+        <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+        {% endif %} 
+
+        {% for error in field.errors %}
+        <p class="text-sm text-rose-600 font-medium mt-1">{{ error }}</p>
+        {% endfor %}
+
+      </div>
+      {% endif %} 
+      {% endfor %} 
+
+      {% if form.non_field_errors %}
+      <div
+        class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-md"
+      >
+
+        {% for error in form.non_field_errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+
+      </div>
+      {% endif %}
+
+      <div class="flex justify-end pt-6">
+        <button
+          type="submit"
+          class="bg-indigo-600 text-white font-semibold px-8 py-2.5 rounded-lg shadow hover:bg-indigo-700 transition-colors duration-200"
+        >
+          Create Tournament
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const gameSelect = document.getElementById("id_game") || document.querySelector('select[name="game"]');
+  const formatSelect = document.getElementById("id_tournament_format") || document.querySelector('select[name="tournament_format"]');
+
+  if (!gameSelect) { console.error('Game select not found (id="id_game" or name="game")'); return; }
+  if (!formatSelect) { console.error('Format select not found (id="id_tournament_format" or name="tournament_format")'); return; }
+
+  async function loadFormats(gameId) {
+    formatSelect.innerHTML = '<option value="">Loading formats…</option>';
+    try {
+      // use the actual route (registered as 'api/games/<uuid:game_id>/formats/' in tournaments/urls.py)
+      const url = new URL(`/api/games/${encodeURIComponent(gameId)}/formats/`, window.location.origin);
+      const res = await fetch(url.toString(), { method: "GET" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+
+      formatSelect.innerHTML = ""; // reset
+      if (!data.formats || data.formats.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.text = "No formats available — please add one";
+        formatSelect.add(opt);
+      } else {
+        for (const f of data.formats) {
+          const opt = document.createElement("option");
+          opt.value = f.id;
+          opt.text = `${f.name} — ${f.team_size ?? ''} players`;
+          formatSelect.add(opt);
+        }
+      }
+    } catch (err) {
+      formatSelect.innerHTML = '<option value="">Error loading formats</option>';
+      console.error('Error loading formats:', err);
+    }
+  }
+
+  gameSelect.addEventListener("change", (e) => {
+    const gameId = e.target.value;
+    if (gameId) loadFormats(gameId);
+    else formatSelect.innerHTML = '<option value="">Select a game first</option>';
+  });
+
+  // If a game is preselected (edit), load formats on page load
+  if (gameSelect.value) loadFormats(gameSelect.value);
+});
+</script>
+
+{% include 'footer.html' %} {% endblock %}
