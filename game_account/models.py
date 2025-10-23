@@ -4,7 +4,7 @@ from django.conf import settings
 
 class GameAccount(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) # use project's configured user model
     game = models.ForeignKey('tournaments.Game', on_delete=models.PROTECT) # reference ke model Game di app tournaments
     ingame_name = models.CharField(max_length=100)
     active = models.BooleanField(default=True)

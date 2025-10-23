@@ -105,4 +105,4 @@ class TeamMember(models.Model):
             raise ValidationError("This team already has a leader.")
 
     def __str__(self):
-        return f'{game_account} ({team}) {"leader" if is_leader else "member"}'
+        return f'{self.game_account} ({self.team}) {"leader" if self.is_leader else "member"}'
