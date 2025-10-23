@@ -4,6 +4,6 @@ from . import views
 app_name = 'team'
 
 urlpatterns = [
-    path('create/', views.create_team, name='create_team'),
-    path('<uuid:id>/', views.manage_team, name='manage_team'),
+    path('create/<uuid:tournament_id>', views.new_team_form, name='create_team_form'),
+    path('<uuid:team_id>/', views.edit_team_form, name='edit_team_form'),
 ]
