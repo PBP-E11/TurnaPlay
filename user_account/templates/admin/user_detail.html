@@ -5,147 +5,210 @@
 {% endblock %}
 
 {% block content %}
-<div class="flex min-h-screen">
-    <!-- Sidebar -->
-    <div class="w-64 bg-[#494598] p-6 flex flex-col">
-        <div class="text-xl font-bold mb-12 text-white flex items-center gap-2">
-            🏆 <span>TurnaPlay</span>
-        </div>
-        
-        <nav class="flex-1 space-y-2">
-            <a href="{% url 'user_account:admin_manage_users' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white text-[#494598] font-semibold">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                </svg>
-                Manage Users
-            </a>
-        </nav>
-        
-        <form method="post" action="{% url 'user_account:logout' %}">
-            {% csrf_token %}
-            <button type="submit" class="w-full bg-red-600 text-white px-4 py-3 rounded-xl font-semibold transition-all hover:bg-red-700">
-                Log Out
-            </button>
-        </form>
-    </div>
-
-    <!-- Main Content -->
-    <div class="flex-1 p-8 bg-white overflow-y-auto">
-        <!-- Breadcrumb -->
-        <div class="flex items-center gap-2 text-sm text-gray-600 mb-6">
-            <a href="{% url 'user_account:admin_manage_users' %}" class="text-[#494598] hover:underline">Manage Users</a>
-            <span>›</span>
-            <span>User Detail</span>
-        </div>
-
-        <h1 class="text-3xl font-bold text-gray-900 mb-8">User Detail</h1>
-
-        <!-- Profile Card -->
-        <div class="bg-[#494598] text-white p-8 rounded-2xl mb-6 flex gap-6 items-center shadow-lg relative overflow-hidden">
-            <!-- Background Pattern -->
-            <div class="absolute inset-0 opacity-10">
-                <div class="absolute top-0 right-0 w-48 h-48 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
-            </div>
-            
-            <img src="https://ui-avatars.com/api/?name={{ viewed_user.display_name }}&size=96&background=fff&color=494598&bold=true" 
-                 class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg relative z-10" alt="{{ viewed_user.display_name }}">
-            
-            <div class="flex-1 relative z-10">
-                <h2 class="text-3xl font-bold mb-1">{{ viewed_user.display_name }}</h2>
-                <div class="text-base opacity-90 mb-3">@{{ viewed_user.username }}</div>
-                <div class="flex gap-6 text-sm flex-wrap">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-                        </svg>
-                        {{ viewed_user.email }}
-                    </div>
-                    {% if viewed_user.phone_number %}
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
-                        </svg>
-                        {{ viewed_user.phone_number }}
-                    </div>
-                    {% endif %}
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                        </svg>
-                        Joined {{ viewed_user.date_joined|date:"d M Y" }}
-                    </div>
+<div class="flex min-h-screen grid grid-flow-row bg-gray-50">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="bg-[#494598] p-5 flex flex-col transition-all duration-300 ease-in-out" style="width: 240px;">
+            <!-- Header dengan toggle button -->
+            <div class="flex items-center justify-between mb-10">
+                <div class="text-lg font-bold text-white flex items-center gap-2 sidebar-content">
+                    🏆 <span>TurnaPlay</span>
                 </div>
+                <button onclick="toggleSidebar()" class="w-full text-white hover:bg-white/10 p-1.5 flex items-center justify-center rounded-lg transition">
+                    <svg id="toggle-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                    </svg>
+                </button>
             </div>
+            
+            <nav class="flex-1 space-y-1.5">
+                <a href="{% url 'user_account:admin_manage_users' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white text-[#494598] font-medium text-sm">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                    </svg>
+                    <span class="sidebar-content">Manage Users</span>
+                </a>
+                <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 cursor-not-allowed text-sm">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                    </svg>
+                    <span class="sidebar-content">Manage Tournaments</span>
+                </div>
+            </nav>
+            
+            <form method="post" action="{% url 'user_account:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="w-full bg-red-600 text-white px-3 py-2.5 rounded-lg font-medium transition-all hover:bg-red-700 text-sm flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    <span class="sidebar-content">Log Out</span>
+                </button>
+            </form>
         </div>
 
-        <!-- Info Grid -->
-        <div class="grid grid-cols-2 gap-5 mb-6">
-            <div class="bg-white border border-gray-200 p-5 rounded-2xl">
-                <div class="text-gray-500 text-sm mb-2">Role</div>
-                <span class="inline-block px-3 py-1.5 rounded-full text-sm font-semibold {% if viewed_user.role == 'user' %}bg-blue-100 text-blue-700{% elif viewed_user.role == 'organizer' %}bg-orange-100 text-orange-700{% else %}bg-purple-100 text-purple-700{% endif %}">
-                    {{ viewed_user.get_role_display }}
-                </span>
-            </div>
-            <div class="bg-white border border-gray-200 p-5 rounded-2xl">
-                <div class="text-gray-500 text-sm mb-2">Account Status</div>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold {% if viewed_user.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
-                    <span class="w-2 h-2 rounded-full bg-current"></span>
-                    {% if viewed_user.is_active %}Active{% else %}Inactive{% endif %}
-                </span>
-            </div>
-            <div class="bg-white border border-gray-200 p-5 rounded-2xl">
-                <div class="text-gray-500 text-sm mb-2">Last Login</div>
-                <div class="text-gray-900 font-semibold">
-                    {% if viewed_user.last_login %}
-                        {{ viewed_user.last_login|date:"d M Y, H:i" }}
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="max-w-7xl mx-auto p-6">
+                <!-- Breadcrumb -->
+                <div class="flex items-center gap-2 text-sm text-gray-600 mb-6">
+                    <a href="{% url 'user_account:admin_manage_users' %}" class="text-[#494598] hover:underline">Manage Users</a>
+                    <span>›</span>
+                    <span>User Detail</span>
+                </div>
+
+                <h1 class="text-2xl font-bold text-gray-900 mb-6">User Detail</h1>
+
+                <!-- Profile Card -->
+                <div class="bg-[#494598] text-white p-8 rounded-xl mb-6 flex gap-6 items-center shadow-lg relative overflow-hidden">
+                    <!-- Background Pattern -->
+                    <div class="absolute inset-0 opacity-10">
+                        <div class="absolute top-0 right-0 w-48 h-48 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                    </div>
+                    {% if user.profile_image %}
+                        {% if viewed_user.profile_image == 'avatar2' %}
+                            <img class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg" alt="{{ viewed_user.display_name }}" src="{% static 'images/profile_images/hero-estes.png' %}">
+                        {% elif viewed_user.profile_image == 'avatar3' %}
+                            <img class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg" alt="{{ viewed_user.display_name }}" src="{% static 'images/profile_images/hero-akai.png' %}">
+                        {% else %}
+                            <!-- Default: avatar1 -->
+                            <img class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg" alt="{{ viewed_user.display_name }}" src="{% static 'images/profile_images/hero-hayabusa.png' %}">
+                        {% endif %}
                     {% else %}
-                        Never
+                    <img src="https://ui-avatars.com/api/?name={{ viewed_user.display_name }}&size=96&background=fff&color=494598&bold=true" 
+                        class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg relative z-10" alt="{{ viewed_user.display_name }}">
+                    {% endif %}
+                    <div class="flex-1 relative z-10">
+                        <h2 class="text-3xl font-bold mb-1">{{ viewed_user.display_name }}</h2>
+                        <div class="text-base opacity-90 mb-3">@{{ viewed_user.username }}</div>
+                        <div class="flex gap-6 text-sm flex-wrap">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                                </svg>
+                                {{ viewed_user.email }}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                </svg>
+                                Joined {{ viewed_user.date_joined|date:"d M Y" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="grid grid-cols-2 gap-5 mb-6">
+                    <div class="bg-white border border-gray-200 p-5 rounded-xl">
+                        <div class="text-gray-500 text-sm mb-2">Role</div>
+                        <span class="inline-block px-3 py-1.5 rounded-full text-sm font-semibold {% if viewed_user.role == 'user' %}bg-blue-100 text-blue-700{% elif viewed_user.role == 'organizer' %}bg-orange-100 text-orange-700{% else %}bg-purple-100 text-purple-700{% endif %}">
+                            {{ viewed_user.get_role_display }}
+                        </span>
+                    </div>
+                    <div class="bg-white border border-gray-200 p-5 rounded-xl">
+                        <div class="text-gray-500 text-sm mb-2">Account Status</div>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold {% if viewed_user.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                            <span class="w-2 h-2 rounded-full bg-current"></span>
+                            {% if viewed_user.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                    <div class="bg-white border border-gray-200 p-5 rounded-xl">
+                        <div class="text-gray-500 text-sm mb-2">Last Login</div>
+                        <div class="text-gray-900 font-semibold">
+                            {% if viewed_user.last_login %}
+                                {{ viewed_user.last_login|date:"d M Y, H:i" }}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 p-5 rounded-xl">
+                        <div class="text-gray-500 text-sm mb-2">User ID</div>
+                        <div class="text-gray-900 text-xs font-mono break-all">
+                            {{ viewed_user.id }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tournament History -->
+                <div class="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-5">Tournament History</h2>
+                    <!-- TODO: Menampilkan semua tournament viewed_user -->
+                    {% if tournaments %} 
+                        <div class="text-center py-10 text-gray-500">
+                            <p>Tournament integration coming soon</p>
+                        </div>
+                    {% else %}
+                    <div class="text-center py-12 text-gray-500">
+                        <div class="text-5xl mb-3">🏆</div>
+                        <p>No tournament history</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-3">
+                    <a href="{% url 'user_account:admin_manage_users' %}" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold transition hover:bg-gray-200">
+                        ← Back to User List
+                    </a>
+                    {% if viewed_user.is_active %}
+                    <button onclick="toggleUserStatus('{{ viewed_user.id }}', true)" class="px-6 py-3 bg-red-50 text-red-700 rounded-xl font-semibold transition hover:bg-red-100">
+                        Deactivate User
+                    </button>
+                    {% else %}
+                    <button onclick="toggleUserStatus('{{ viewed_user.id }}', false)" class="px-6 py-3 bg-green-50 text-green-700 rounded-xl font-semibold transition hover:bg-green-100">
+                        Activate User
+                    </button>
                     {% endif %}
                 </div>
             </div>
-            <div class="bg-white border border-gray-200 p-5 rounded-2xl">
-                <div class="text-gray-500 text-sm mb-2">User ID</div>
-                <div class="text-gray-900 text-xs font-mono break-all">
-                    {{ viewed_user.id }}
-                </div>
-            </div>
         </div>
-
-        <!-- Tournament History -->
-        <div class="bg-white border border-gray-200 rounded-2xl p-6 mb-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-5">Tournament History</h2>
-            {% if tournaments %}
-                <div class="text-center py-10 text-gray-500">
-                    <p>Tournament integration coming soon</p>
-                </div>
-            {% else %}
-            <div class="text-center py-12 text-gray-500">
-                <div class="text-5xl mb-3">🏆</div>
-                <p>No tournament history</p>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex gap-3">
-            <a href="{% url 'user_account:admin_manage_users' %}" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold transition hover:bg-gray-200">
-                ← Back to User List
-            </a>
-            {% if viewed_user.is_active %}
-            <button onclick="toggleUserStatus('{{ viewed_user.id }}', true)" class="px-6 py-3 bg-red-50 text-red-700 rounded-xl font-semibold transition hover:bg-red-100">
-                Deactivate User
-            </button>
-            {% else %}
-            <button onclick="toggleUserStatus('{{ viewed_user.id }}', false)" class="px-6 py-3 bg-green-50 text-green-700 rounded-xl font-semibold transition hover:bg-green-100">
-                Activate User
-            </button>
-            {% endif %}
-        </div>
+    </div>
+    <!-- Footer -->
+    <div class="bg-[#302D74] h-[28px] flex justify-center items-center font-semibold text-xs text-white">
+        © 2025 TurnaPlay - All rights reserved.
     </div>
 </div>
 
 <script>
+// Sidebar Toggle Function
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const icon = document.getElementById('toggle-icon');
+    const sidebarContent = document.querySelectorAll('.sidebar-content');
+    
+    // Check the current sidebar width and toggle accordingly
+    if (sidebar.style.width === '240px') {
+        sidebar.style.width = '80px';
+        sidebarContent.forEach(el => el.style.display = 'none');
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>';
+        localStorage.setItem('sidebarState', 'closed'); // Save state to localStorage
+    } else {
+        sidebar.style.width = '240px';
+        setTimeout(() => {
+            sidebarContent.forEach(el => el.style.display = '');
+        }, 200);
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>';
+        localStorage.setItem('sidebarState', 'open'); // Save state to localStorage
+    }
+}
+
+// Ensure the sidebar state is remembered when navigating to the User Detail page
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('sidebar');
+    const savedState = localStorage.getItem('sidebarState');
+    
+    if (savedState === 'closed') {
+        sidebar.style.width = '80px';
+        const sidebarContent = document.querySelectorAll('.sidebar-content');
+        sidebarContent.forEach(el => el.style.display = 'none');
+        document.getElementById('toggle-icon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>';
+    }
+});
+
+// Toggle User Status
 function toggleUserStatus(userId, isActive) {
     const action = isActive ? 'deactivate' : 'activate';
     if (!confirm(`Are you sure you want to ${action} this user?`)) {
@@ -174,4 +237,15 @@ function toggleUserStatus(userId, isActive) {
     });
 }
 </script>
+
+<style>
+/* Smooth transitions for sidebar */
+#sidebar {
+    transition: width 0.3s ease-in-out;
+}
+
+.sidebar-content {
+    transition: opacity 0.2s ease-in-out;
+}
+</style>
 {% endblock %}

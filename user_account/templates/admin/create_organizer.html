@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-[#494598] flex items-center justify-center p-5">
+<div class="min-h-screen bg-[#494598] bg-opacity-70 flex items-center justify-center p-5">
     <div class="bg-white rounded-3xl p-10 max-w-lg w-full shadow-2xl">
         <div class="text-center mb-8">
             <div class="text-3xl font-bold text-[#494598] mb-2.5 flex items-center justify-center gap-2">
@@ -60,19 +60,6 @@
                 <div class="text-red-600 text-xs mt-1">{{ form.display_name.errors.0 }}</div>
                 {% endif %}
                 <p class="text-gray-600 text-xs mt-1">Nama yang akan ditampilkan ke publik</p>
-            </div>
-
-            <div class="mb-5">
-                <label for="id_phone_number" class="block text-gray-700 font-medium mb-2 text-sm">
-                    Phone Number
-                </label>
-                <input type="text" name="phone_number" id="id_phone_number"
-                       class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20"
-                       placeholder="Phone Number (optional)">
-                {% if form.phone_number.errors %}
-                <div class="text-red-600 text-xs mt-1">{{ form.phone_number.errors.0 }}</div>
-                {% endif %}
-                <p class="text-gray-600 text-xs mt-1">Opsional</p>
             </div>
 
             <div class="mb-5">

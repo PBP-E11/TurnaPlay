@@ -203,7 +203,7 @@ def register_view(request):
 def complete_profile_view(request):
     """User registration - Step 2: Complete profile with avatar"""
     if request.method == 'POST':
-        profile_image = request.POST.get('profile_image', 'avatar1')
+        profile_image = request.POST.get('profile_image')
         
         user = request.user
         user.profile_image = profile_image
