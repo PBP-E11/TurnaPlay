@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Profile - TurnaPlay</title>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex flex-col font-montserrat">
+    <!-- Navbar -->
+    {% include 'navbar.html' %}
+
+    <!-- Content -->
+    <div class="flex-1 max-w-5xl w-full mx-auto px-5 py-8">
+        <!-- Profile Header -->
+        <div class="bg-[#494598] text-white p-10 rounded-3xl flex justify-between items-center mb-6 shadow-lg relative overflow-hidden">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                <div class="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
+            </div>
+            
+            <div class="flex w-full items-center gap-10 relative z-10">
+                {% if user.profile_image == 'avatar2' %}
+                    <img class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg" alt="{{ user.display_name }}" src="{% static 'images/profile_images/hero-estes.png' %}">
+                {% elif user.profile_image == 'avatar3' %}
+                    <img class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg" alt="{{ user.display_name }}" src="{% static 'images/profile_images/hero-akai.png' %}">
+                {% else %}
+                    <!-- Default: avatar1 -->
+                    <img class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg" alt="{{ user.display_name }}" src="{% static 'images/profile_images/hero-hayabusa.png' %}">
+                {% endif %}
+                <div>
+                    <h1 class="text-3xl mb-1">{{ user.display_name }}</h1>
+                    <div class="flex gap-4 text-sm">
+                        <span>{{ user.email }}</span>
+                    </div>
+                </div>
+                <div class="text-base opacity-90 ml-10 mb-3">
+                    Username
+                    <br>
+                    <span>{{ user.username }}</span>
+                </div>
+            </div>
+            <a href="{% url 'user_account:update_profile' %}" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold transition flex items-center gap-2 relative z-10">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                </svg>
+                Edit
+            </a>
+        </div>
+
+        <!-- Tournament History -->
+        <h2 class="text-xl font-semibold text-gray-900 mb-5">History Tournament</h2>
+        <div class="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-gray-300">
+            
+            {% if tournaments %}
+            <div class="space-y-3">
+                {% for tournament in tournaments %}
+                <div class="border border-gray-200 rounded-xl p-5 hover:border-[#494598] hover:shadow-md transition">
+                    <div class="grid grid-cols-4 gap-4 items-center">
+                        <div class="font-semibold text-gray-900">
+                            Nama Turnamen
+                            <br>
+                            <span class="text-base font-semibold text-gray-900">{{ tournament.name }}</span>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            Game
+                            <br>
+                            <span class="text-base font-semibold text-gray-900">
+                                {{ tournament.game }}
+                            </span>
+                        </div>
+                        <div class="text-left">
+                            <div class="text-sm text-gray-600">Status</div>
+                            <span class="text-xs font-bold inline-flex items-start gap-1.5 {% if tournament.status == 'ongoing' %} text-green-700{% else %}text-red-700{% endif %}">
+                                ● {{ tournament.status|title }}
+                            </span>
+                        </div>
+                        <div class="text-left">
+                            <div class="text-sm text-gray-600">Tanggal</div>
+                            <div class="font-medium">{{ tournament.date }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12 text-gray-500">
+                <div class="text-5xl mb-3 opacity-50">🏆</div>
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Belum Ada Tournament</h3>
+                <p class="text-sm">Anda belum mengikuti tournament apapun.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- My Game Accounts -->
+        <div class="bg-white rounded-2xl p-6 mb-20 shadow-sm border border-gray-300">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                    <span>🎮</span> My Game Accounts
+                </h2>
+                <button class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
+                    →
+                </button>
+            </div>
+        </div>
+
+        <!-- Logout Button -->
+        <form method="post" action="{% url 'user_account:logout' %}" class="flex justify-end mt-20">
+            {% csrf_token %}
+            <button type="submit" class="mt-20 bg-red-600 text-white px-8 py-3 rounded-xl font-semibold transition-all hover:bg-red-700 hover:shadow-lg">
+                Log Out
+            </button>
+        </form>
+    </div>
+
+    <!-- Footer -->
+    {% include 'footer.html' %}
+</div>
+{% endblock %}

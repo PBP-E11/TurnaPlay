@@ -22,4 +22,5 @@ urlpatterns = [
     path('', include('tournaments.urls')),
     path('game-account', include('game_account.urls')),
     path('', include('tournament_invite.urls', namespace='tournament_invite')),
+    path('', include('user_account.urls')),
 ]
