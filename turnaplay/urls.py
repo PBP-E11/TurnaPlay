@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('tournaments.urls')),
     path('game-account', include('game_account.urls')),
+    path('', include('tournament_invite.urls', namespace='tournament_invite')),
 ]
