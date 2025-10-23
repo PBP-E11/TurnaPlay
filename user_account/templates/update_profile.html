@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block meta %}
+<title>Update Profile - TurnaPlay</title>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8 px-5">
+    <div class="max-w-3xl mx-auto bg-white rounded-3xl p-10 shadow-lg">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Update Profile</h1>
+            <p class="text-gray-600 text-sm">Perbarui informasi profil Anda</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="{% if message.tags == 'error' %}bg-red-50 text-red-800{% else %}bg-green-50 text-green-800{% endif %} p-3 rounded-lg mb-5 text-sm">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 text-red-800 p-3 rounded-lg mb-5 text-sm">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Basic Information -->
+            <div class="mb-8 pb-8 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900 mb-5">Basic Information</h2>
+                
+                <div class="mb-5">
+                    <label for="id_display_name" class="block text-gray-700 font-medium mb-2 text-sm">Display Name</label>
+                    <input type="text" name="display_name" id="id_display_name" value="{{ user.display_name }}"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20">
+                    {% if form.display_name.errors %}
+                    <div class="text-red-600 text-xs mt-1">{{ form.display_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-5">
+                    <label for="id_email" class="block text-gray-700 font-medium mb-2 text-sm">Email</label>
+                    <input type="email" name="email" id="id_email" value="{{ user.email }}"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20">
+                    {% if form.email.errors %}
+                    <div class="text-red-600 text-xs mt-1">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Email untuk login dan notifikasi</p>
+                </div>
+            </div>
+
+            <!-- Avatar Selection -->
+            <div class="mb-8 pb-8 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900 mb-5">Profile Avatar</h2>
+                
+                <div class="grid grid-cols-3 gap-4">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="profile_image" value="avatar1" 
+                               {% if user.profile_image == 'avatar1' %}checked{% endif %} class="hidden peer">
+                        <div class="border-3 border-gray-300 rounded-2xl p-5 text-center transition-all bg-gray-50 peer-checked:border-[#494598] peer-checked:bg-purple-50 hover:border-[#494598]">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#494598] to-[#3d3770] mx-auto mb-2.5 flex items-center justify-center overflow-hidden">
+                                <img class="w-full h-full object-cover" alt="Hayabusa" src="{% static 'images/profile_images/hero-hayabusa.png' %}">
+                            </div>
+                            <div class="text-sm font-medium text-gray-700">Avatar 1</div>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="profile_image" value="avatar2"
+                               {% if user.profile_image == 'avatar2' %}checked{% endif %} class="hidden peer">
+                        <div class="border-3 border-gray-300 rounded-2xl p-5 text-center transition-all bg-gray-50 peer-checked:border-[#494598] peer-checked:bg-purple-50 hover:border-[#494598]">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#494598] to-[#3d3770] mx-auto mb-2.5 flex items-center justify-center overflow-hidden">
+                                <img class="w-full h-full object-cover" alt="Estes" src="{% static 'images/profile_images/hero-estes.png' %}">
+                            </div>
+                            <div class="text-sm font-medium text-gray-700">Avatar 2</div>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="profile_image" value="avatar3"
+                               {% if user.profile_image == 'avatar3' %}checked{% endif %} class="hidden peer">
+                        <div class="border-3 border-gray-300 rounded-2xl p-5 text-center transition-all bg-gray-50 peer-checked:border-[#494598] peer-checked:bg-purple-50 hover:border-[#494598]">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#494598] to-[#3d3770] mx-auto mb-2.5 flex items-center justify-center overflow-hidden">
+                                <img class="w-full h-full object-cover" alt="Akai" src="{% static 'images/profile_images/hero-akai.png' %}">
+                            </div>
+                            <div class="text-sm font-medium text-gray-700">Avatar 3</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Change Password -->
+            <div class="mb-8 pb-8 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900 mb-5">Change Password</h2>
+                <div class="bg-orange-50 text-orange-700 p-4 rounded-xl mb-5 text-sm">
+                    ⚠️ Kosongkan field password jika tidak ingin mengubah password
+                </div>
+                
+                <div class="mb-5">
+                    <label for="id_current_password" class="block text-gray-700 font-medium mb-2 text-sm">Current Password</label>
+                    <input type="password" name="current_password" id="id_current_password"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20">
+                    {% if form.current_password.errors %}
+                    <div class="text-red-600 text-xs mt-1">{{ form.current_password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-5">
+                    <label for="id_new_password" class="block text-gray-700 font-medium mb-2 text-sm">New Password</label>
+                    <input type="password" name="new_password" id="id_new_password"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20">
+                    {% if form.new_password.errors %}
+                    <div class="text-red-600 text-xs mt-1">{{ form.new_password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-5">
+                    <label for="id_confirm_password" class="block text-gray-700 font-medium mb-2 text-sm">Confirm New Password</label>
+                    <input type="password" name="confirm_password" id="id_confirm_password"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20">
+                    {% if form.confirm_password.errors %}
+                    <div class="text-red-600 text-xs mt-1">{{ form.confirm_password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-3">
+                <a href="{% url 'user_account:profile' %}" class="flex-1 text-center bg-gray-100 text-gray-700 py-3.5 rounded-xl font-semibold transition hover:bg-gray-200">
+                    Cancel
+                </a>
+                <button type="submit" class="flex-1 bg-[#494598] text-white py-3.5 rounded-xl font-semibold transition-all hover:bg-[#3d3770] hover:shadow-lg">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+
+        <!-- Delete Account -->
+        <div class="mt-10 pt-10 border-t border-gray-200">
+            <h2 class="text-lg font-semibold text-red-800 mb-3">Danger Zone</h2>
+            <p class="text-gray-600 mb-4 text-sm">Setelah akun dihapus, data Anda akan dihapus secara permanen.</p>
+            <button onclick="deleteAccount()" class="bg-red-600 text-white px-6 py-3.5 rounded-xl font-semibold transition hover:bg-red-700">
+                Delete Account
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteAccount() {
+    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+        if (confirm('This is your last warning. Are you absolutely sure?')) {
+            fetch('{% url "user_account:delete_account" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '{% url "user_account:login" %}';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            });
+        }
+    }
+}
+</script>
+{% endblock %}

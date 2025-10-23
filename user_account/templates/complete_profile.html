@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block meta %}
+<title>Complete Profile - TurnaPlay</title>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-[#494598] to-[#3d3770] flex items-center justify-center p-5">
+    <div class="bg-white rounded-3xl p-12 max-w-2xl w-full shadow-2xl">
+        <div class="text-center mb-10">
+            <div class="text-3xl font-bold text-[#494598] mb-2">
+                🏆 TurnaPlay
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Complete Your Profile</h1>
+            <p class="text-gray-600 text-sm">Lengkapi profil Anda untuk melanjutkan</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="flex justify-between mb-10 relative">
+            <div class="absolute top-4 left-0 right-0 h-0.5 bg-gray-300 -z-10"></div>
+            
+            <div class="flex flex-col items-center relative z-10 bg-white px-2">
+                <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold mb-2">
+                    ✓
+                </div>
+                <span class="text-xs text-gray-600">Basic Info</span>
+            </div>
+            
+            <div class="flex flex-col items-center relative z-10 bg-white px-2">
+                <div class="w-8 h-8 rounded-full bg-[#494598] flex items-center justify-center text-white font-semibold mb-2">
+                    2
+                </div>
+                <span class="text-xs text-gray-600">Profile Details</span>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Avatar Selection -->
+            <div class="mb-10">
+                <h2 class="text-lg font-semibold text-gray-900 mb-5">Choose Your Avatar</h2>
+                <div class="grid grid-cols-3 gap-5">
+                    {% for avatar in avatar_choices %}
+                    <label class="cursor-pointer">
+                        <input type="radio" name="profile_image" value="{{ avatar }}" 
+                            {% if forloop.first %}checked{% endif %} class="hidden peer">
+                        <div class="border-3 border-gray-300 rounded-2xl p-5 text-center transition-all bg-gray-50 peer-checked:border-[#494598] peer-checked:bg-purple-50 peer-checked:scale-105 hover:border-[#494598]">
+                            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-[#494598] to-[#3d3770] mx-auto mb-2.5 flex items-center justify-center text-4xl overflow-hidden">
+                                {% if avatar == 'avatar1' %}
+                                    <img class="w-full h-full object-cover" alt="Hayabusa" src="{% static 'images/profile_images/hero-hayabusa.png' %}">
+                                {% elif avatar == 'avatar2' %}
+                                    <img class="w-full h-full object-cover" alt="Estes" src="{% static 'images/profile_images/hero-estes.png' %}">
+                                {% else %}
+                                    <img class="w-full h-full object-cover" alt="Akai" src="{% static 'images/profile_images/hero-akai.png' %}">
+                                {% endif %}
+                            </div>
+                            <div class="text-sm font-medium text-gray-700">Avatar {{ forloop.counter }}</div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="flex gap-3">
+                <button type="button" class="flex-1 bg-gray-100 text-gray-700 py-3.5 rounded-xl font-semibold text-base transition-all hover:bg-gray-200" 
+                        onclick="window.location.href='{% url 'user_account:login' %}'">
+                    Skip for Now
+                </button>
+                <button type="submit" class="flex-1 bg-[#494598] text-white py-3.5 rounded-xl font-semibold text-base transition-all hover:bg-[#3d3770] hover:shadow-lg">
+                    Complete Profile
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
