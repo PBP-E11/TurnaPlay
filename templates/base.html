@@ -11,7 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Krona+One&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   </head>
   <body>
-    <main class="pt-16"> 
+    <main class="pt-16 font-['Krona_One']"> 
     {% block content %} {% endblock content %}
+    {% include "tournament_invite/_toast_poll.html" %}
   </body>
 </html>
