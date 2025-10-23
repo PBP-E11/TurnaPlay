@@ -84,7 +84,7 @@ class TeamMember(models.Model):
         tournament = self.team.tournament
 
         conflict = TeamMember.objects.filter(
-            game_account__user_account = user_account,
+            game_account__user = user_account,
             team__tournament = tournament,
         ).exclude(pk=self.pk)
 
