@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="p-6">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="text-2xl">My Game Accounts</h1>
+    <div>
+      <button id="ga-add" class="px-3 py-2 bg-green-600 text-white">Add Account</button>
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <label>Filter by game</label>
+    <select id="filter-game" class="border p-2">
+      <option value="">-- All --</option>
+      {% for game in games %}
+      <option value="{{ game.id }}">{{ game.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div id="ga-list" class="space-y-2">
+    <!-- rows inserted here -->
+  </div>
+</div>
+
+<!-- modal overlay for the form -->
+<div id="ga-modal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center">
+  <div class="bg-white rounded p-4 w-96">
+    <div id="ga-modal-body"></div>
+  </div>
+</div>
+
+<script>
+(async function(){
+  async function fetchList(gameId) {
+    const url = new URL('/game-accounts/', window.location.origin);
+    if (gameId) url.searchParams.set('game', gameId);
+    const res = await fetch(url, {credentials: 'same-origin'});
+    return res.ok ? await res.json() : [];
+  }
+
+  function renderItem(it){
+    const div = document.createElement('div');
+    div.className = 'border p-2 flex justify-between items-center';
+    const left = document.createElement('div');
+    left.innerHTML = `<strong>${it.ingame_name}</strong><div class="text-sm text-gray-600">${it.game_id}</div>`;
+    const right = document.createElement('div');
+    const del = document.createElement('button');
+    del.className = 'px-2 py-1 bg-red-500 text-white';
+    del.textContent = 'Delete';
+    del.addEventListener('click', async ()=>{
+      if (!confirm('Delete this game account?')) return;
+      const resp = await fetch(`/game-accounts/${it.id}/`, {method: 'DELETE', credentials: 'same-origin'});
+      if (resp.status === 204) {
+        showToast('Account deleted.');
+        load();
+      } else if (resp.status === 403) {
+        showToast('Not allowed', true);
+      } else {
+        showToast('Delete failed', true);
+      }
+    });
+    right.appendChild(del);
+    div.appendChild(left);
+    div.appendChild(right);
+    return div;
+  }
+
+  function showToast(msg, isError){
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.className = `fixed bottom-6 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded ${isError? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`;
+    document.body.appendChild(t);
+    setTimeout(()=> t.remove(), 3000);
+  }
+
+  async function load(){
+    const gameId = document.getElementById('filter-game').value || null;
+    const items = await fetchList(gameId);
+    const cont = document.getElementById('ga-list');
+    cont.innerHTML = '';
+    items.forEach(it => cont.appendChild(renderItem(it)));
+  }
+
+  document.getElementById('filter-game').addEventListener('change', load);
+
+  document.getElementById('ga-add').addEventListener('click', async ()=>{
+    // fetch form partial
+    const res = await fetch('/game-accounts/_form/');
+    const html = await res.text();
+    document.getElementById('ga-modal-body').innerHTML = html;
+    document.getElementById('ga-modal').classList.remove('hidden');
+
+    const form = document.getElementById('ga-form');
+    document.getElementById('ga-cancel').addEventListener('click', ()=>{
+      document.getElementById('ga-modal').classList.add('hidden');
+    });
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const data = {
+        game: form.game.value,
+        ingame_name: form.ingame_name.value
+      };
+      const res = await fetch('/game-accounts/', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+        body: JSON.stringify(data)
+      });
+      if (res.status === 201) {
+        showToast('Account added.');
+        document.getElementById('ga-modal').classList.add('hidden');
+        load();
+      } else {
+        const j = await res.json();
+        showToast('Save failed', true);
+        console.error(j);
+      }
+    });
+  });
+
+  // helper to get cookie
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+  await load();
+})();
+</script>
+
+{% endblock %}
