@@ -23,8 +23,9 @@
       >
         Detail
       </a>
-      {% if user.is_authenticated %}
+      {% if user.is_authenticated and tournament.is_active %}
       <button
+        data-tournament-id="{{ tournament.id }}"
         data-js="register-btn"
         type="button"
         class="font-['Montserrat'] px-6 py-1 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition font-semibold"
