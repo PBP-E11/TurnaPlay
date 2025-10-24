@@ -39,10 +39,10 @@
       <!-- User Profile Button -->
       <div class="flex items-center">
         {% if user.is_authenticated %}
-        <div class="relative">
+        <div class="relative w-auto h-auto">
           <button
             id="user-menu-button"
-            class="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+            class="flex items-center space-x-2 bg-[#494598] text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
           >
             <div
               class="w-8 h-8 rounded-full bg-white flex items-center justify-center"
@@ -59,7 +59,7 @@
               >
               {% endif %}
             </div>
-            <span class="font-medium">{{ user.username|default:"John" }}</span>
+            <span class="font-medium font-['Montserrat']">{{ user.username|default:"User" }}</span>
             <svg
               class="w-4 h-4"
               fill="none"

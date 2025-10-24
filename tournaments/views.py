@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 def show_main(request):
     # Query tournaments ordered by date (newest first) and paginate
     tournaments_qs = Tournament.objects.order_by('-tournament_date', 'tournament_name')
-    paginator = Paginator(tournaments_qs, 12)  # 12 per page
+    paginator = Paginator(tournaments_qs, 9)  #9 per page
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
@@ -67,7 +67,7 @@ def tournament_list_json(request):
         page_number = 1
 
     tournaments_qs = Tournament.objects.order_by('-tournament_date', 'tournament_name')
-    paginator = Paginator(tournaments_qs, 12)
+    paginator = Paginator(tournaments_qs, 9)
     page = paginator.get_page(page_number)
 
     # Build a serializable list of lightweight tournament dicts the client expects
