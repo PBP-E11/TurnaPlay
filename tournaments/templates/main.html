@@ -6,7 +6,7 @@
     class="relative w-full rounded-xl overflow-hidden border border-indigo-400 shadow-sm bg-white"
   >
     <img
-      src="{% static 'image/BannerValo.png' %}"
+      src="{% static 'image/BannerValo.webp' %}"
       alt="Banner"
       class="w-full h-56 sm:h-64 md:h-80 lg:h-96 object-cover"
     />
@@ -16,12 +16,13 @@
       <h1 class="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight">
         TurnaPlay 2025
       </h1>
-      <p class="mt-2 text-sm md:text-lg max-w-lg">
-        Buktikan timmu jadi juara arena e-sport paling bergengsi!
+      <p class="mt-2 text-sm md:text-lg max-w-sm">
+        Bawa tim kamu jadi juara arena E-sport paling bergengsi!
       </p>
       <a
-        href="#"
-        class="mt-4 inline-block bg-white text-indigo-600 font-semibold px-5 py-2 rounded-full hover:bg-indigo-50 transition"
+        id="banner-cta"
+        href="#tournament-list-header"
+        class="mt-4 inline-block bg-white text-[#494598] font-semibold font-['Montserrat'] px-5 py-2 rounded-full hover:bg-indigo-100 transition"
         >Daftar Sekarang</a
       >
     </div>
@@ -29,7 +30,7 @@
 </section>
 
 <!-- Game Logos strip -->
-<section class="bg-indigo-700/90 py-6 mt-8">
+<section class="bg-[#494598] py-6 mt-8">
   <div
     class="max-w-7xl mx-auto px-4 flex justify-center items-center flex-wrap gap-6 md:gap-10"
   >
@@ -73,73 +74,99 @@
 
 <!-- Active Tournament List -->
 <main class="max-w-7xl mx-auto px-4 py-8">
-  <h2 class="text-2xl font-bold mb-6">Active Tournament List</h2>
-
-  <div
-    id="tournament-grid"
-    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-  >
-    {% for tournament in tournaments %} {% include 'card_tournament.html' %} {% endfor %}
+  <div id="tournament-list-header" class="flex items-center gap-4 mb-8">
+    <img
+      src="{% static 'image/ControllerLogo.svg' %}"
+      alt="Controller Logo"
+      class="h-6 md:h-8 w-auto"
+    />
+    <h2 class="text-2xl font-bold font-['Montserrat'] m-0">
+      Active Tournament List
+    </h2>
   </div>
-
-  <div class="flex items-center justify-between mt-6">
-    <div>
-      {% if page_obj.has_previous %}
-      <a
-        id="prev-button"
-        data-prev-page="{{ page_obj.previous_page_number }}"
-        href="?page={{ page_obj.previous_page_number }}"
-        class="inline-block bg-gray-200 text-gray-800 font-semibold px-4 py-2 rounded-md hover:bg-gray-300 transition"
-      >
-        &lt; Back
-      </a>
-      {% endif %}
-    </div>
-
-    <div>
+  {# Create/controls row inserted below header (Create + Prev/Next) #}
+  <!-- Controls row: Create on the left, Prev/Next on the right -->
+  <div class="mt-4 flex items-center justify-between mb-4">
+    <div class="flex items-center">
       {% if can_create %}
       <a
         href="/tournaments/create/"
-        class="bg-indigo-600 text-white font-semibold px-5 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
+        class="bg-[#3D3A80] border border-black text-white font-semibold font-['Montserrat'] px-5 py-2 rounded-lg shadow hover:bg-indigo-900 transition"
       >
         Create Tournament
       </a>
       {% endif %}
     </div>
 
-    <div>
-      {% if page_obj.has_next %}
+    <div class="font-['Montserrat'] flex items-center gap-3">
+      <a
+        id="prev-button"
+        data-prev-page="{% if page_obj.has_previous %}{{ page_obj.previous_page_number }}{% endif %}"
+        href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% else %}#{% endif %}"
+        class="inline-block bg-gray-200 text-gray-800 font-semibold px-4 py-2 rounded-md hover:bg-gray-300 transition {% if not page_obj.has_previous %}hidden{% endif %}"
+      >
+        &lt; Back
+      </a>
+
       <button
         id="next-button"
-        data-next-page="{{ page_obj.next_page_number }}"
-        class="bg-amber-400 text-gray-900 font-semibold px-4 py-2 rounded-md hover:bg-amber-300 transition"
+        data-next-page="{% if page_obj.has_next %}{{ page_obj.next_page_number }}{% endif %}"
+        class="bg-red-400 text-gray-900 font-semibold px-4 py-2 rounded-md hover:bg-red-500 transition {% if not page_obj.has_next %}hidden{% endif %}"
       >
         Next &gt;
       </button>
-      {% endif %}
     </div>
   </div>
-</main>
+  <div
+    id="tournament-grid"
+    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-14"
+  >
+    {% for tournament in tournaments %} {% include 'card_tournament.html' %} {% endfor %}
+  </div>
 
 <!-- Template used by JS to append cards (Tailwind classes applied) -->
 <template id="tournament-card-template">
   <article
-    class="bg-slate-800 rounded-lg overflow-hidden shadow-md transform hover:-translate-y-1 transition"
+    class="bg-transparent rounded-lg overflow-hidden shadow-md transform hover:-translate-y-1 transition"
   >
-    <img class="w-full h-44 object-cover" src="" alt="Tournament Banner" />
+    <img
+      data-js="banner"
+      class="w-full h-44 object-cover"
+      src=""
+      alt="Tournament Banner"
+    />
     <div class="p-4">
-      <h3 data-js="name" class="text-lg font-semibold text-white">
+      <h3
+        data-js="name"
+        class="text-lg font-bold text-black font-['Montserrat']"
+      >
         Tournament Name
       </h3>
-      <p data-js="date" class="text-sm text-rose-400 font-bold mt-2">
+      <p data-js="date" class="text-sm text-[#D20A0A] font-bold mt-2">
         Tournament Date
       </p>
-      <a
-        data-js="detail-url"
-        href="#"
-        class="inline-block mt-4 text-sm bg-transparent border border-slate-400 text-slate-200 px-3 py-1.5 rounded-full font-semibold hover:bg-slate-200 hover:text-slate-900 transition"
-        >Detail</a
-      >
+      <div class="flex gap-3 mt-2">
+        <!-- Detail (secondary) -->
+        <a
+          data-js="detail-url"
+          href="#"
+          class="inline-block text-sm bg-transparent border border-slate-400 text-[#494598] font-['Montserrat'] px-12 py-1 rounded-full font-semibold hover:bg-slate-200 hover:text-slate-900 transition"
+        >
+          Detail
+        </a>
+
+        <!-- Daftar (primary) -->
+        {% if user.is_authenticated %}
+        <button
+          data-js="register-btn"
+          type="button"
+          class="font-['Montserrat'] px-6 py-1 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition font-semibold"
+          aria-label="Daftar to tournament"
+        >
+          Daftar
+        </button>
+        {% endif %}
+      </div>
     </div>
   </article>
 </template>
@@ -151,41 +178,106 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    // Smooth scroll from banner CTA to tournament grid
+    console.log("Tournament pagination script loaded!");
+    const bannerCta = document.getElementById("banner-cta");
+    if (bannerCta) {
+      bannerCta.addEventListener("click", function (ev) {
+        // Let anchor behavior remain for keyboard/AT, but enhance with smooth scroll
+        ev.preventDefault();
+        const target = document.getElementById("tournament-grid");
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+          // update URL hash without jumping
+          history.replaceState(null, "", "#tournament-grid");
+        }
+      });
+    }
     const tournamentGrid = document.getElementById("tournament-grid");
     const cardTemplate = document.getElementById("tournament-card-template");
     const prevButton = document.getElementById("prev-button");
     const nextButton = document.getElementById("next-button");
 
     // default banner available server-side
-    const defaultBanner = "{% static 'image/BannerValo.png' %}";
+    const defaultBanner = "{% static 'image/BannerValo.webp' %}";
 
     function createTournamentCard(tournament) {
       const cardClone = document.importNode(cardTemplate.content, true);
-      const img = cardClone.querySelector("img");
-
-      img.src = tournament.banner || tournament.banner_url || defaultBanner;
-      img.alt = `${
-        tournament.name || tournament.tournament_name || "Tournament"
-      } Banner`;
-
+      // Ensure classes match the server-rendered partial so styling stays consistent
+      const articleEl = cardClone.querySelector("article");
+      const img =
+        cardClone.querySelector('[data-js="banner"]') ||
+        cardClone.querySelector("img");
       const nameEl = cardClone.querySelector('[data-js="name"]');
       const dateEl = cardClone.querySelector('[data-js="date"]');
       const detailEl = cardClone.querySelector('[data-js="detail-url"]');
 
-      nameEl.textContent = safeText(
-        tournament.name || tournament.tournament_name
-      );
-      dateEl.textContent = safeText(
-        tournament.date || tournament.tournament_date
-      );
-
-      if (tournament.detail_url) {
-        detailEl.href = tournament.detail_url;
-      } else if (tournament.id) {
-        detailEl.href = `/tournaments/${tournament.id}/`;
-      } else {
-        detailEl.href = "#";
+      // Apply the canonical classes used in card_tournament.html
+      if (articleEl) {
+        articleEl.className =
+          "bg-transparent rounded-lg overflow-hidden shadow-md transform hover:-translate-y-1 transition";
       }
+      if (img) {
+        img.className = "w-full h-44 object-cover";
+        img.src = tournament.banner || tournament.banner_url || defaultBanner;
+        img.alt = `${
+          tournament.name || tournament.tournament_name || "Tournament"
+        } Banner`;
+      }
+
+      if (nameEl) {
+        nameEl.className = "text-lg font-bold text-black font-['Montserrat']";
+        nameEl.textContent = safeText(
+          tournament.name || tournament.tournament_name
+        );
+      }
+      if (dateEl) {
+        dateEl.className = "text-sm text-[#D20A0A] font-bold mt-2";
+        dateEl.textContent = safeText(
+          tournament.date || tournament.tournament_date
+        );
+      }
+      if (detailEl) {
+        detailEl.className =
+          "inline-block text-sm bg-transparent border border-slate-400 text-[#494598] font-['Montserrat'] px-12 py-1 rounded-full font-semibold hover:bg-slate-200 hover:text-slate-900 transition";
+        if (tournament.detail_url) {
+          detailEl.href = tournament.detail_url;
+        } else if (tournament.id) {
+          detailEl.href = `/tournaments/${tournament.id}/`;
+        } else {
+          detailEl.href = "#";
+        }
+      }
+      
+      // --- THIS IS THE CORRECTED BLOCK ---
+      const registerEl = cardClone.querySelector('[data-js="register-btn"]');
+      if (registerEl) {
+        // If tournament is NOT active, remove the button.
+        // The button is already present in the template if the user is authenticated.
+        if (!tournament.is_active) {
+          registerEl.remove();
+        } else {
+          // Otherwise, attach tournament id and click handler
+          registerEl.dataset.tournamentId = tournament.id || '';
+          registerEl.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            console.debug('Register clicked for tournament', registerEl.dataset.tournamentId);
+            // Default behavior: navigate to tournament detail page and append a register anchor
+            try {
+              const tid = registerEl.dataset.tournamentId;
+              if (detailEl && detailEl.href) {
+                // preserve absolute href
+                globalThis.location.href = detailEl.href + '#register';
+              } else if (tid) {
+                globalThis.location.href = `/tournaments/${tid}/#register`;
+              }
+            } catch (error_) {
+              console.error('Navigation to registration failed', error_);
+            }
+          }); // <-- Closing parenthesis and brace for addEventListener
+        }
+      } // <-- Closing brace for if (registerEl)
+      // --- END OF CORRECTED BLOCK ---
 
       return cardClone;
     }
@@ -224,6 +316,24 @@
         }
       }
     }
+    // Event delegation for register buttons rendered server-side (and any future ones)
+    document.body.addEventListener('click', function (ev) {
+      const btn = ev.target.closest('[data-js="register-btn"]');
+      if (!btn) return;
+      // same behavior as client-cloned buttons: navigate to detail page anchor
+      ev.preventDefault();
+  const tid = btn.dataset.tournamentId || null;
+      const detailAnchor = btn.closest('article')?.querySelector('[data-js="detail-url"]');
+      try {
+        if (detailAnchor && detailAnchor.href) {
+          globalThis.location.href = detailAnchor.href + '#register';
+        } else if (tid) {
+          globalThis.location.href = `/tournaments/${tid}/#register`;
+        }
+      } catch (error_) {
+        console.error('Delegated navigation to registration failed', error_);
+      }
+    });
 
     async function fetchAndRenderPage(pageNumber) {
       if (!pageNumber) return;
@@ -289,4 +399,5 @@
   });
 </script>
 
+</main>
 {% include 'footer.html' %} {% endblock %}

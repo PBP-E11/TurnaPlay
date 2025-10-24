@@ -72,6 +72,8 @@ class TournamentCreationForm(forms.ModelForm):
         # By default, don't expose all formats until a game is selected (JS will populate)
         # This improves UX and prevents showing irrelevant formats.
         self.fields['tournament_format'].queryset = TournamentFormat.objects.none()
+        self.fields['game'].empty_label = "Select a Game"
+        self.fields['tournament_format'].empty_label = "Select a game first"
 
         # If there's a posted 'game' value (POST request), restrict the format queryset accordingly
         if 'game' in self.data:

@@ -18,9 +18,16 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # 1. Path for the Django Admin
+    path('django-admin/', admin.site.urls),
+    
+    # 2. Unique prefix for each app
+    path('accounts/', include('user_account.urls')),
+    path('game-accounts/', include('game_account.urls')),
+    path('invites/', include('tournament_invite.urls')),
+    
+    # 3. Main app (with the homepage) is LAST
+    # This will handle the root URL ('/') and any other paths
+    # not matched by the apps above (e.g., /api/tournaments/)
     path('', include('tournaments.urls')),
-    path('game-account', include('game_account.urls')),
-    path('', include('tournament_invite.urls', namespace='tournament_invite')),
-    path('', include('user_account.urls')),
 ]
