@@ -1,4 +1,4 @@
-<div id="ga-widget" class="fixed bottom-4 right-4 bg-white border rounded shadow p-3 w-64">
+<div id="ga-widget" style="display:none;" class="fixed bottom-4 right-4 bg-white border rounded shadow p-3 w-64">
   <div class="flex justify-between items-center mb-2">
     <strong>Choose account</strong>
     <button id="ga-widget-close" class="text-sm">✕</button>
@@ -18,33 +18,247 @@
     return await res.json();
   }
 
+  // toast portal helper to avoid stacking context issues with transformed ancestors
+  function getToastPortal(){
+    let portal = document.getElementById('tp-toast-portal');
+    if (!portal) {
+      portal = document.createElement('div');
+      portal.id = 'tp-toast-portal';
+      // make portal cover viewport and sit above everything else
+      portal.style.position = 'fixed';
+      portal.style.top = '0';
+      portal.style.left = '0';
+      portal.style.right = '0';
+      portal.style.bottom = '0';
+      // very large z-index to beat most stacking contexts
+      portal.style.zIndex = '99999999999';
+      portal.style.pointerEvents = 'none';
+      document.body.appendChild(portal);
+    }
+    return portal;
+  }
+
+  function showToast(msg, isError){
+    const portal = getToastPortal();
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.style.pointerEvents = 'auto';
+    t.style.position = 'fixed';
+  // place toast at top-center so it never overlaps the footer
+  t.style.top = '1.5rem';
+  // ensure it doesn't also have bottom set
+  t.style.bottom = '';
+    t.style.left = '50%';
+    t.style.transform = 'translateX(-50%)';
+    t.style.padding = '0.5rem 1rem';
+    t.style.borderRadius = '0.5rem';
+    t.style.color = 'white';
+    t.style.backgroundColor = isError ? '#ef4444' : '#16a34a';
+    t.style.opacity = '0';
+    t.style.transition = 'opacity 120ms ease-in-out';
+    // ensure toast itself has a very high z-index as extra guarantee
+    t.style.zIndex = '99999999999';
+    portal.appendChild(t);
+    requestAnimationFrame(()=> t.style.opacity = '1');
+    setTimeout(()=> { t.style.opacity = '0'; setTimeout(()=> t.remove(), 140); }, 3000);
+  }
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
   function renderList(items) {
     const container = document.getElementById('ga-widget-list');
     container.innerHTML = '';
-    items.forEach(it => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'w-full text-left px-2 py-1 hover:bg-gray-100';
-      btn.textContent = it.ingame_name;
-      btn.dataset.gaId = it.id;
-      btn.addEventListener('click', () => {
-        const ev = new CustomEvent('gameaccount:selected', {detail: {id: it.id, name: it.ingame_name}});
-        window.dispatchEvent(ev);
-      });
-      container.appendChild(btn);
+    if (!items || items.length === 0) {
+      const msg = document.createElement('div');
+      msg.className = 'text-sm text-gray-600';
+      msg.textContent = 'No game accounts found.';
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      // use the same orange style as the profile arrow button for consistency
+      addBtn.className = 'mt-2 w-full px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl';
+          addBtn.textContent = 'Add account';
+            addBtn.addEventListener('click', async () => {
+              // Open the add-account form as an AJAX modal on the current page
+              try {
+                let modal = document.getElementById('ga-ajax-modal');
+                if (!modal) {
+                  modal = document.createElement('div');
+                  modal.id = 'ga-ajax-modal';
+                  modal.className = 'fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50';
+                  modal.innerHTML = '<div id="ga-ajax-modal-body" class="bg-white rounded p-4 w-96"></div>';
+                  document.body.appendChild(modal);
+                }
+                const body = document.getElementById('ga-ajax-modal-body');
+                const res = await fetch('/game-accounts/_form/');
+                const html = await res.text();
+                body.innerHTML = html;
+
+                // helper to get cookie
+                function getCookie(name) {
+                  const value = `; ${document.cookie}`;
+                  const parts = value.split(`; ${name}=`);
+                  if (parts.length === 2) return parts.pop().split(';').shift();
+                }
+
+                // wire cancel and style buttons to match profile arrow
+                const cancel = document.getElementById('ga-cancel');
+                if (cancel) {
+                // make cancel red to match destructive action styling
+                cancel.className = 'px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl mr-2';
+                cancel.addEventListener('click', () => modal.remove());
+                }
+
+                // wire submit and style save button
+                const form = document.getElementById('ga-form');
+                const submitBtn = document.getElementById('ga-submit');
+                if (submitBtn) submitBtn.className = 'px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl';
+                if (form) form.addEventListener('submit', async (e) => {
+                  e.preventDefault();
+                  const data = {
+                    game: form.game.value,
+                    ingame_name: form.ingame_name.value
+                  };
+                  const r = await fetch('/game-accounts/', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+                    body: JSON.stringify(data)
+                  });
+                  if (r.status === 201) {
+                    showToast('Account added.');
+                    modal.remove();
+                    // refresh the list in the widget
+                    const items = await fetchAccounts();
+                    renderList(items);
+                  } else {
+                    const j = await r.json().catch(()=>({}));
+                    showToast('Save failed', true);
+                    console.error('Save failed', j);
+                  }
+                });
+              } catch (err) {
+                console.error('Failed to open add-account modal', err);
+                window.location.href = '/game-accounts/manage/';
+              }
+            });
+          container.appendChild(msg);
+          container.appendChild(addBtn);
+          return;
+        }
+
+        items.forEach(it => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'w-full text-left px-2 py-1 hover:bg-gray-100';
+          btn.textContent = it.ingame_name;
+          btn.dataset.gaId = it.id;
+          btn.addEventListener('click', () => {
+            const ev = new CustomEvent('gameaccount:selected', {detail: {id: it.id, name: it.ingame_name}});
+            window.dispatchEvent(ev);
+          });
+          container.appendChild(btn);
+        });
+
+    // always show an Add account button below the list so users can add more accounts
+    const addMore = document.createElement('div');
+    addMore.className = 'pt-2';
+    const addMoreBtn = document.createElement('button');
+    addMoreBtn.type = 'button';
+    addMoreBtn.className = 'w-full px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl';
+    addMoreBtn.textContent = 'Add account';
+    addMoreBtn.addEventListener('click', async () => {
+      // reuse existing logic: open the same modal used when there are no accounts
+      try {
+        let modal = document.getElementById('ga-ajax-modal');
+        if (!modal) {
+          modal = document.createElement('div');
+          modal.id = 'ga-ajax-modal';
+          modal.className = 'fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50';
+          modal.innerHTML = '<div id="ga-ajax-modal-body" class="bg-white rounded p-4 w-96"></div>';
+          document.body.appendChild(modal);
+        }
+        const body = document.getElementById('ga-ajax-modal-body');
+        const res = await fetch('/game-accounts/_form/');
+        const html = await res.text();
+        body.innerHTML = html;
+
+        // helper to get cookie
+        function getCookie(name) {
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        // style and wire cancel
+        const cancel = document.getElementById('ga-cancel');
+        if (cancel) {
+          cancel.className = 'px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl mr-2';
+          cancel.addEventListener('click', () => modal.remove());
+        }
+
+        // wire submit and style save button
+        const form = document.getElementById('ga-form');
+        const submitBtn = document.getElementById('ga-submit');
+        if (submitBtn) submitBtn.className = 'px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl';
+        if (form) form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const data = {
+            game: form.game.value,
+            ingame_name: form.ingame_name.value
+          };
+          const r = await fetch('/game-accounts/', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+            body: JSON.stringify(data)
+          });
+          if (r.status === 201) {
+            showToast('Account added.');
+            modal.remove();
+            const items = await fetchAccounts();
+            renderList(items);
+          } else {
+            const j = await r.json().catch(()=>({}));
+            showToast('Save failed', true);
+            console.error('Save failed', j);
+          }
+        });
+
+      } catch (err) {
+        console.error('Failed to open add-account modal', err);
+        window.location.href = '/game-accounts/manage/';
+      }
     });
+    addMore.appendChild(addMoreBtn);
+    container.appendChild(addMore);
   }
 
   window.showGameAccountWidget = async function(gameId){
     const widget = document.getElementById('ga-widget');
-    widget.style.display = 'block';
-    const items = await fetchAccounts(gameId);
-    renderList(items);
+    try {
+      console.debug('showGameAccountWidget called with gameId=', gameId);
+      if (!widget) { console.warn('ga-widget element not found'); return; }
+      widget.style.display = 'block';
+      const items = await fetchAccounts(gameId);
+      console.debug('showGameAccountWidget fetched', items.length, 'items');
+      renderList(items);
+    } catch (err) {
+      console.error('Error in showGameAccountWidget', err);
+      // ensure widget still visible so user sees error state
+      if (widget) widget.style.display = 'block';
+    }
   }
 
   document.getElementById('ga-widget-close').addEventListener('click', () => {
     document.getElementById('ga-widget').style.display = 'none';
   });
+
+  // expose showToast for manual testing in console (plsplspls)
+  try { window.showToast = showToast; } catch(e){}
 
 })();
 </script>

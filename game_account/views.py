@@ -49,7 +49,16 @@ def game_accounts_list_create(request):
 class GameAccountDetail(View):
     def get(self, request, pk):
         ga = get_object_or_404(GameAccount, pk=pk)
-        return JsonResponse(model_to_dict(ga, fields=['id','user','game','ingame_name','active']))
+        # return expanded JSON with related game name for convenience in frontend
+        data = {
+            'id': str(ga.id),
+            'user': ga.user_id,
+            'game': str(ga.game_id),
+            'game_name': getattr(ga.game, 'name', None),
+            'ingame_name': ga.ingame_name,
+            'active': ga.active,
+        }
+        return JsonResponse(data)
 
     def delete(self, request, pk):
         if not request.user.is_authenticated:
