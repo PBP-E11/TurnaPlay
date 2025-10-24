@@ -163,7 +163,6 @@ AUTH_USER_MODEL = 'user_account.UserAccount'
 
 # Login/Logout URLs
 LOGIN_URL = '/accounts/login/'
-
 # Session settings (optional - untuk Remember Me feature)
 SESSION_COOKIE_AGE = 1209600  # 2 weeks
 SESSION_SAVE_EVERY_REQUEST = False

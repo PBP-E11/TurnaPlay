@@ -8,44 +8,7 @@
 <div class="flex min-h-screen grid grid-flow-row bg-gray-50">
     <div class="flex min-h-screen">
         <!-- Sidebar -->
-        <div id="sidebar" class="bg-[#494598] p-5 flex flex-col transition-all duration-300 ease-in-out" style="width: 240px;">
-            <!-- Header dengan toggle button -->
-            <div class="flex items-center justify-between mb-10">
-                <div class="text-lg font-bold text-white flex items-center gap-2 sidebar-content">
-                    🏆 <span>TurnaPlay</span>
-                </div>
-                <button onclick="toggleSidebar()" class="w-full text-white hover:bg-white/10 p-1.5 flex items-center justify-center rounded-lg transition">
-                    <svg id="toggle-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
-                    </svg>
-                </button>
-            </div>
-            
-            <nav class="flex-1 space-y-1.5">
-                <a href="{% url 'user_account:admin_manage_users' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white text-[#494598] font-medium text-sm">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                    </svg>
-                    <span class="sidebar-content">Manage Users</span>
-                </a>
-                <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 cursor-not-allowed text-sm">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
-                    </svg>
-                    <span class="sidebar-content">Manage Tournaments</span>
-                </div>
-            </nav>
-            
-            <form method="post" action="{% url 'user_account:logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="w-full bg-red-600 text-white px-3 py-2.5 rounded-lg font-medium transition-all hover:bg-red-700 text-sm flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                    </svg>
-                    <span class="sidebar-content">Log Out</span>
-                </button>
-            </form>
-        </div>
+        {% include 'admin/_sidebar.html' %}
 
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto">
@@ -65,14 +28,14 @@
                     <div class="absolute inset-0 opacity-10">
                         <div class="absolute top-0 right-0 w-48 h-48 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
                     </div>
-                    {% if user.profile_image %}
+                    {% if viewed_user.profile_image %}
                         {% if viewed_user.profile_image == 'avatar2' %}
-                            <img class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg" alt="{{ viewed_user.display_name }}" src="{% static 'images/profile_images/hero-estes.png' %}">
+                            <img class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg relative z-10" alt="{{ viewed_user.display_name }}" src="{% static 'images/profile_images/hero-estes.png' %}">
                         {% elif viewed_user.profile_image == 'avatar3' %}
-                            <img class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg" alt="{{ viewed_user.display_name }}" src="{% static 'images/profile_images/hero-akai.png' %}">
+                            <img class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg relative z-10" alt="{{ viewed_user.display_name }}" src="{% static 'images/profile_images/hero-akai.png' %}">
                         {% else %}
                             <!-- Default: avatar1 -->
-                            <img class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg" alt="{{ viewed_user.display_name }}" src="{% static 'images/profile_images/hero-hayabusa.png' %}">
+                            <img class="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg relative z-10" alt="{{ viewed_user.display_name }}" src="{% static 'images/profile_images/hero-hayabusa.png' %}">
                         {% endif %}
                     {% else %}
                     <img src="https://ui-avatars.com/api/?name={{ viewed_user.display_name }}&size=96&background=fff&color=494598&bold=true" 
@@ -135,15 +98,100 @@
                 <!-- Tournament History -->
                 <div class="bg-white border border-gray-200 rounded-xl p-6 mb-6">
                     <h2 class="text-xl font-semibold text-gray-900 mb-5">Tournament History</h2>
-                    <!-- TODO: Menampilkan semua tournament viewed_user -->
-                    {% if tournaments %} 
-                        <div class="text-center py-10 text-gray-500">
-                            <p>Tournament integration coming soon</p>
-                        </div>
-                    {% else %}
-                    <div class="text-center py-12 text-gray-500">
-                        <div class="text-5xl mb-3">🏆</div>
-                        <p>No tournament history</p>
+                    
+                    <!-- Tabs for Participated vs Organized -->
+                    <div class="flex gap-2 mb-5 border-b border-gray-200">
+                        <button onclick="showTab('participated')" id="tab-participated" class="px-4 py-2 text-sm font-medium border-b-2 border-[#494598] text-[#494598]">
+                            Participated Tournaments
+                        </button>
+                        {% if viewed_user.role == 'organizer' %}
+                        <button onclick="showTab('organized')" id="tab-organized" class="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                            Organized Tournaments
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Participated Tournaments Tab -->
+                    <div id="content-participated">
+                        {% if participated_tournaments %}
+                            <div class="space-y-3">
+                                {% for tournament in participated_tournaments %}
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-[#494598] hover:shadow-sm transition">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-gray-900 text-sm mb-1">{{ tournament.tournament_name }}</div>
+                                            <div class="text-xs text-gray-500">
+                                                {{ tournament.tournament_format.game.name }} • 
+                                                Organized by @{{ tournament.organizer.username }}
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-xs text-gray-500">Date</div>
+                                            <div class="text-sm text-gray-900 font-medium">
+                                                {% if tournament.tournament_date %}
+                                                    {{ tournament.tournament_date|date:"d M Y" }}
+                                                {% else %}
+                                                    TBA
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <a href="{% url 'user_account:admin_tournament_detail' tournament.id %}" 
+                                        class="ml-4 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
+                                            View
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-12 text-gray-500">
+                                <img src="{% static 'image/TrophyNavBarLogo.svg' %}" alt="" class="w-12 h-12 mx-auto mb-3">
+                                <p class="text-sm">No participated tournaments</p>
+                                <p class="text-xs mt-1">User hasn't participated in any tournaments yet</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Organized Tournaments Tab -->
+                    {% if viewed_user.role == 'organizer' %}
+                    <div id="content-organized" class="hidden">
+                        {% if organized_tournaments %}
+                            <div class="space-y-3">
+                                {% for tournament in organized_tournaments %}
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-[#494598] hover:shadow-sm transition">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-gray-900 text-sm mb-1">{{ tournament.tournament_name }}</div>
+                                            <div class="text-xs text-gray-500">
+                                                {{ tournament.tournament_format.game.name }} • 
+                                                {{ tournament.participants_count }}/{{ tournament.team_maximum_count }} participants
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-xs text-gray-500">Date</div>
+                                            <div class="text-sm text-gray-900 font-medium">
+                                                {% if tournament.tournament_date %}
+                                                    {{ tournament.tournament_date|date:"d M Y" }}
+                                                {% else %}
+                                                    TBA
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <a href="{% url 'user_account:admin_tournament_detail' tournament.id %}" 
+                                        class="ml-4 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
+                                            View
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-12 text-gray-500">
+                                <img src="{% static 'image/TrophyNavBarLogo.svg' %}" alt="" class="w-12 h-12 mx-auto mb-3">
+                                <p class="text-sm">No organized tournaments</p>
+                                <p class="text-xs mt-1">User hasn't organized any tournaments yet</p>
+                            </div>
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
@@ -153,15 +201,10 @@
                     <a href="{% url 'user_account:admin_manage_users' %}" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold transition hover:bg-gray-200">
                         ← Back to User List
                     </a>
-                    {% if viewed_user.is_active %}
-                    <button onclick="toggleUserStatus('{{ viewed_user.id }}', true)" class="px-6 py-3 bg-red-50 text-red-700 rounded-xl font-semibold transition hover:bg-red-100">
-                        Deactivate User
+                    <button onclick="deleteUser('{{ viewed_user.id }}', '{{ viewed_user.username }}')" 
+                            class="px-6 py-3 bg-red-600 text-white rounded-xl font-semibold transition hover:bg-red-700">
+                        Delete User Permanently
                     </button>
-                    {% else %}
-                    <button onclick="toggleUserStatus('{{ viewed_user.id }}', false)" class="px-6 py-3 bg-green-50 text-green-700 rounded-xl font-semibold transition hover:bg-green-100">
-                        Activate User
-                    </button>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -173,49 +216,13 @@
 </div>
 
 <script>
-// Sidebar Toggle Function
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const icon = document.getElementById('toggle-icon');
-    const sidebarContent = document.querySelectorAll('.sidebar-content');
-    
-    // Check the current sidebar width and toggle accordingly
-    if (sidebar.style.width === '240px') {
-        sidebar.style.width = '80px';
-        sidebarContent.forEach(el => el.style.display = 'none');
-        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>';
-        localStorage.setItem('sidebarState', 'closed'); // Save state to localStorage
-    } else {
-        sidebar.style.width = '240px';
-        setTimeout(() => {
-            sidebarContent.forEach(el => el.style.display = '');
-        }, 200);
-        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>';
-        localStorage.setItem('sidebarState', 'open'); // Save state to localStorage
-    }
-}
-
-// Ensure the sidebar state is remembered when navigating to the User Detail page
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebar = document.getElementById('sidebar');
-    const savedState = localStorage.getItem('sidebarState');
-    
-    if (savedState === 'closed') {
-        sidebar.style.width = '80px';
-        const sidebarContent = document.querySelectorAll('.sidebar-content');
-        sidebarContent.forEach(el => el.style.display = 'none');
-        document.getElementById('toggle-icon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>';
-    }
-});
-
-// Toggle User Status
-function toggleUserStatus(userId, isActive) {
-    const action = isActive ? 'deactivate' : 'activate';
-    if (!confirm(`Are you sure you want to ${action} this user?`)) {
+// Delete User Function
+function deleteUser(userId, username) {
+    if (!confirm(`Are you sure you want to permanently delete user "${username}"?\n\nThis action cannot be undone and will remove all user data.`)) {
         return;
     }
 
-    fetch(`/user/admin/users/${userId}/deactivate/`, {
+    fetch(`/user/dashboard/users/${userId}/delete/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': '{{ csrf_token }}',
@@ -226,7 +233,7 @@ function toggleUserStatus(userId, isActive) {
     .then(data => {
         if (data.success) {
             alert(data.message);
-            location.reload();
+            window.location.href = "{% url 'user_account:admin_manage_users' %}";
         } else {
             alert(data.error || 'An error occurred');
         }
@@ -236,16 +243,36 @@ function toggleUserStatus(userId, isActive) {
         alert('An error occurred');
     });
 }
+
+function showTab(tabName) {
+    // Hide all content
+    document.getElementById('content-participated').classList.add('hidden');
+    const organizedContent = document.getElementById('content-organized');
+    if (organizedContent) {
+        organizedContent.classList.add('hidden');
+    }
+    
+    // Remove active state from all tabs
+    document.getElementById('tab-participated').classList.remove('border-[#494598]', 'text-[#494598]');
+    document.getElementById('tab-participated').classList.add('border-transparent', 'text-gray-500');
+    
+    const organizedTab = document.getElementById('tab-organized');
+    if (organizedTab) {
+        organizedTab.classList.remove('border-[#494598]', 'text-[#494598]');
+        organizedTab.classList.add('border-transparent', 'text-gray-500');
+    }
+    
+    // Show selected content and activate tab
+    if (tabName === 'participated') {
+        document.getElementById('content-participated').classList.remove('hidden');
+        document.getElementById('tab-participated').classList.add('border-[#494598]', 'text-[#494598]');
+        document.getElementById('tab-participated').classList.remove('border-transparent', 'text-gray-500');
+    } else if (tabName === 'organized' && organizedContent) {
+        organizedContent.classList.remove('hidden');
+        organizedTab.classList.add('border-[#494598]', 'text-[#494598]');
+        organizedTab.classList.remove('border-transparent', 'text-gray-500');
+    }
+}
+
 </script>
-
-<style>
-/* Smooth transitions for sidebar */
-#sidebar {
-    transition: width 0.3s ease-in-out;
-}
-
-.sidebar-content {
-    transition: opacity 0.2s ease-in-out;
-}
-</style>
 {% endblock %}

@@ -6,6 +6,8 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
+from tournaments.models import Tournament, TournamentParticipant
+from tournament_registration.models import TournamentRegistration, TeamMember
 from .models import UserAccount
 from .forms import RegisterForm, LoginForm, ProfileUpdateForm, CreateOrganizerForm
 import json
@@ -77,22 +79,14 @@ def admin_create_organizer(request):
     
     if request.method == 'POST':
         form = CreateOrganizerForm(request.POST)
+        
         if form.is_valid():
             user = form.save(commit=False)
             user.role = 'organizer'
             user.save()
             
-            # Check if the request is AJAX using the 'X-Requested-With' header
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': True, 'message': 'Organizer account created successfully!'})
-            
             messages.success(request, f'Organizer account {user.username} created successfully!')
             return redirect('user_account:admin_manage_users')
-        
-        # If form is not valid, send error response (AJAX)
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'error': 'Form is invalid'})
-    
     else:
         form = CreateOrganizerForm()
     
@@ -107,39 +101,149 @@ def admin_user_detail(request, user_id):
     
     user = get_object_or_404(UserAccount, id=user_id)
     
-    # Get user's tournament history (placeholder - implement when Tournament model ready)
-    tournaments = []  # TODO: Query from Tournament model
+    # Get tournaments where user is a participant
+    participated_tournaments = Tournament.objects.filter(
+        participants=user
+    ).select_related('organizer', 'tournament_format__game')
+    
+    # Get tournaments organized by this user (if organizer)
+    organized_tournaments = Tournament.objects.none()
+    if user.role == 'organizer':
+        organized_tournaments = Tournament.objects.filter(
+            organizer=user
+        ).select_related('tournament_format__game')
     
     context = {
         'viewed_user': user,
-        'tournaments': tournaments,
+        'participated_tournaments': participated_tournaments,
+        'organized_tournaments': organized_tournaments,
     }
     
     return render(request, 'admin/user_detail.html', context)
 
 @login_required
 @require_http_methods(["POST"])
-def admin_deactivate_user(request, user_id):
-    """Admin deactivate/activate user"""
+def admin_delete_user(request, user_id):
+    """Admin permanently delete user"""
     if not request.user.is_admin():
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
     
     user = get_object_or_404(UserAccount, id=user_id)
     
-    # Prevent admin from deactivating themselves
+    # Prevent admin from deleting themselves
     if user.id == request.user.id:
-        return JsonResponse({'success': False, 'error': 'Cannot deactivate your own account'})
+        return JsonResponse({'success': False, 'error': 'Cannot delete your own account'})
     
-    # Toggle active status
-    user.is_active = not user.is_active
-    user.save()
+    username = user.username
+    user.delete()
     
-    action = 'activated' if user.is_active else 'deactivated'
     return JsonResponse({
         'success': True, 
-        'message': f'User {user.username} has been {action}',
-        'is_active': user.is_active
+        'message': f'User {username} has been permanently deleted'
     })
+
+@login_required
+def admin_manage_tournaments(request):
+    """Admin page to manage all tournaments"""
+    if not request.user.is_admin():
+        return HttpResponseForbidden("You don't have permission to access this page.")
+    
+    # Get filter parameters
+    search = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+
+    # Base queryset with related data
+    tournaments = Tournament.objects.select_related(
+        'organizer',
+        'tournament_format__game'
+    ).annotate(
+        participants_count=Count('participants', distinct=True)
+    )
+    
+    # Apply filters
+    if search:
+        tournaments = tournaments.filter(
+            Q(tournament_name__icontains=search) | 
+            Q(organizer__username__icontains=search) |
+            Q(tournament_format__game__name__icontains=search)
+        )
+    
+    # Note: Tournament model tidak memiliki field 'status' berdasarkan models.py yang diberikan
+    # Jika ingin filter status, bisa berdasarkan tournament_date
+    if status_filter:
+        from django.utils import timezone
+        today = timezone.localdate()
+        
+        if status_filter == 'upcoming':
+            tournaments = tournaments.filter(tournament_date__gte=today)
+        elif status_filter == 'past':
+            tournaments = tournaments.filter(tournament_date__lt=today)
+        elif status_filter == 'tba':
+            tournaments = tournaments.filter(tournament_date__isnull=True)
+    
+    # Statistics
+    total_tournaments = Tournament.objects.count()
+    
+    # Count tournaments by date (as proxy for active/upcoming)
+    from django.utils import timezone
+    today = timezone.localdate()
+    active_tournaments = Tournament.objects.filter(
+        tournament_date__gte=today
+    ).count()
+    
+    # Count unique participants across all tournaments
+    total_participants = UserAccount.objects.filter(
+        participated_tournaments__isnull=False
+    ).distinct().count()
+    
+    # Pagination
+    paginator = Paginator(tournaments, 10)
+    page_number = request.GET.get('page')
+    tournaments_page = paginator.get_page(page_number)
+    
+    context = {
+        'tournaments': tournaments_page,
+        'total_tournaments': total_tournaments,
+        'active_tournaments': active_tournaments,
+        'total_participants': total_participants,
+        'search': search,
+        'status_filter': status_filter,
+    }
+    
+    return render(request, 'admin/manage_tournaments.html', context)
+
+@login_required
+def admin_tournament_detail(request, tournament_id):
+    """Admin view tournament details"""
+    if not request.user.is_admin():
+        return HttpResponseForbidden("You don't have permission to access this page.")
+    
+    tournament = get_object_or_404(
+        Tournament.objects.select_related(
+            'organizer', 
+            'tournament_format__game'
+        ),
+        id=tournament_id
+    )
+    
+    # Get all participants with their participation details
+    participant_records = TournamentParticipant.objects.filter(
+        tournament=tournament
+    ).select_related('participant').order_by('-registered_at')
+    
+    # Get all tournament registrations (teams)
+    registrations = TournamentRegistration.objects.filter(
+        tournament=tournament
+    ).prefetch_related('members__game_account__user')
+    
+    context = {
+        'tournament': tournament,
+        'participant_records': participant_records,
+        'registrations': registrations,
+        'participants_count': participant_records.count(),
+    }
+    
+    return render(request, 'admin/tournament_detail.html', context)
 
 # ==================== AUTHENTICATION ====================
 def login_view(request):
@@ -241,9 +345,10 @@ def profile_view(request):
     """User profile page"""
     user = request.user
     
-    # Get user's tournament history
-    tournaments = []  # TODO: Query from Tournament model
-    
+    # Get tournaments where user is a participant
+    tournaments = Tournament.objects.filter(
+        participants=user
+    ).select_related('organizer', 'tournament_format__game')
     context = {
         'user': user,
         'tournaments': tournaments,

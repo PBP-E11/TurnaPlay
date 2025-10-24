@@ -8,44 +8,7 @@
 <div class="flex min-h-screen grid grid-flow-row bg-gray-50">
     <div class="flex min-h-screen">
         <!-- Sidebar -->
-        <div id="sidebar" class="bg-[#494598] p-5 flex flex-col transition-all duration-300 ease-in-out" style="width: 240px;">
-            <!-- Header dengan toggle button -->
-            <div class="flex items-center justify-between mb-10">
-                <div class="text-lg font-bold text-white flex items-center gap-2 sidebar-content">
-                    🏆 <span>TurnaPlay</span>
-                </div>
-                <button onclick="toggleSidebar()" class="w-full text-white hover:bg-white/10 p-1.5 flex items-center justify-center rounded-lg transition">
-                    <svg id="toggle-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
-                    </svg>
-                </button>
-            </div>
-            
-            <nav class="flex-1 space-y-1.5">
-                <a href="{% url 'user_account:admin_manage_users' %}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white text-[#494598] font-medium text-sm">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                    </svg>
-                    <span class="sidebar-content">Manage Users</span>
-                </a>
-                <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 cursor-not-allowed text-sm">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
-                    </svg>
-                    <span class="sidebar-content">Manage Tournaments</span>
-                </div>
-            </nav>
-            
-            <form method="post" action="{% url 'user_account:logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="w-full bg-red-600 text-white px-3 py-2.5 rounded-lg font-medium transition-all hover:bg-red-700 text-sm flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                    </svg>
-                    <span class="sidebar-content">Log Out</span>
-                </button>
-            </form>
-        </div>
+        {% include 'admin/_sidebar.html' %}
 
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto">
@@ -64,12 +27,44 @@
                 <!-- Header -->
                 <div class="flex justify-between items-center mb-6">
                     <h1 class="text-2xl font-bold text-gray-900">Manage Users</h1>
-                    <div class="bg-[#494598] text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium text-sm">
-                        <img src="https://ui-avatars.com/api/?name=Admin&background=fff&color=494598&size=32" class="w-6 h-6 rounded-full">
-                        Admin
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="bg-[#494598] text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium text-sm hover:bg-[#3d3770] transition">
+                            <img src="https://ui-avatars.com/api/?name=Admin&background=fff&color=494598&size=32" class="w-6 h-6 rounded-full">
+                            Admin
+                            <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': open }" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div x-show="open" @click.away="open = false" 
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 transform scale-95"
+                            x-transition:enter-end="opacity-100 transform scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 transform scale-100"
+                            x-transition:leave-end="opacity-0 transform scale-95"
+                            class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
+                            
+                            <a href="{% url 'tournaments:show_main' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                </svg>
+                                Homepage
+                            </a>
+                            
+                            <div class="border-t border-gray-200 my-1"></div>
+                            
+                            <form method="post" action="{% url 'user_account:logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                    </svg>
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
@@ -89,26 +84,9 @@
                 <div class="bg-white border border-gray-200 rounded-xl p-5">
                     <div class="flex justify-between items-center mb-5">
                         <h2 class="text-lg font-semibold text-gray-900">Pengguna Aktif</h2>
-                        <!-- Add a Button that triggers the Modal -->
-                        <a href="#" id="createOrganizerBtn" class="bg-[#494598] text-white px-4 py-2 rounded-lg font-medium transition-all hover:bg-[#3d3770] text-sm">
+                        <a href="{% url 'user_account:admin_create_organizer' %}" class="bg-[#494598] text-white px-4 py-2 rounded-lg font-medium transition-all hover:bg-[#3d3770] text-sm">
                             + Create Organizer
                         </a>
-
-                        <!-- Modal Structure -->
-                        <div id="createOrganizerModal" class="fixed inset-0 z-50 hidden justify-center items-center overflow-hidden">
-                            <div class="bg-white bg-opacity-60 rounded-xl w-full h-screen overflow-auto">
-                                <!-- Close Button -->
-                                <button id="closeModalBtn" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">
-                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                        <path fill-rule="evenodd" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                                
-                                <!-- Modal Content -->                                
-                                <!-- Include the form from create_organizer.html -->
-                                {% include 'admin/create_organizer.html' %}
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Filters -->
@@ -162,9 +140,9 @@
                                     <a href="{% url 'user_account:admin_user_detail' user.id %}" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
                                         Detail
                                     </a>
-                                    <button onclick="toggleUserStatus('{{ user.id }}', {{ user.is_active|lower }})" 
-                                            class="px-3 py-1.5 rounded-lg text-xs font-medium transition {% if user.is_active %}bg-red-50 text-red-700 hover:bg-red-100{% else %}bg-green-50 text-green-700 hover:bg-green-100{% endif %}">
-                                        {% if user.is_active %}Nonaktifkan{% else %}Activate{% endif %}
+                                    <button onclick="deleteUser('{{ user.id }}', '{{ user.username }}')" 
+                                            class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-red-50 text-red-700 hover:bg-red-100">
+                                        Delete
                                     </button>
                                 </div>
                             </div>
@@ -174,29 +152,36 @@
                         {% endfor %}
                     </div>
 
-                    <!-- Pagination with AJAX -->
+                    <!-- Pagination -->
                     {% if users.has_other_pages %}
                     <div class="flex justify-center items-center gap-3 mt-5 pt-5 border-t border-gray-200">
-                        <button onclick="loadPage({{ users.previous_page_number }})" 
-                                {% if not users.has_previous %}disabled{% endif %}
-                                class="px-4 py-2 rounded-lg text-sm font-medium border transition {% if users.has_previous %}text-gray-700 border-gray-300 hover:bg-gray-50{% else %}text-gray-400 border-gray-200 cursor-not-allowed{% endif %}">
+                        {% if users.has_previous %}
+                        <a href="?page={{ users.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                           class="px-4 py-2 rounded-lg text-sm font-medium border text-gray-700 border-gray-300 hover:bg-gray-50 transition">
+                            ← Previous
+                        </a>
+                        {% else %}
+                        <button disabled class="px-4 py-2 rounded-lg text-sm font-medium border text-gray-400 border-gray-200 cursor-not-allowed">
                             ← Previous
                         </button>
+                        {% endif %}
                         
                         <div class="flex items-center gap-2">
                             {% for num in users.paginator.page_range %}
                                 {% if num == users.number %}
-                                    <button class="px-3 py-2 rounded-lg text-sm font-semibold bg-[#494598] text-white">
+                                    <span class="px-3 py-2 rounded-lg text-sm font-semibold bg-[#494598] text-white">
                                         {{ num }}
-                                    </button>
+                                    </span>
                                 {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
-                                    <button onclick="loadPage({{ num }})" class="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
+                                    <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                                       class="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
                                         {{ num }}
-                                    </button>
+                                    </a>
                                 {% elif num == 1 or num == users.paginator.num_pages %}
-                                    <button onclick="loadPage({{ num }})" class="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
+                                    <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                                       class="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
                                         {{ num }}
-                                    </button>
+                                    </a>
                                     {% if num == 1 and users.number > 4 %}
                                         <span class="text-gray-400">...</span>
                                     {% elif num == users.paginator.num_pages and users.number < users.paginator.num_pages|add:'-3' %}
@@ -206,11 +191,16 @@
                             {% endfor %}
                         </div>
                         
-                        <button onclick="loadPage({{ users.next_page_number }})" 
-                                {% if not users.has_next %}disabled{% endif %}
-                                class="px-4 py-2 rounded-lg text-sm font-medium border transition {% if users.has_next %}text-gray-700 border-gray-300 hover:bg-gray-50{% else %}text-gray-400 border-gray-200 cursor-not-allowed{% endif %}">
+                        {% if users.has_next %}
+                        <a href="?page={{ users.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                           class="px-4 py-2 rounded-lg text-sm font-medium border text-gray-700 border-gray-300 hover:bg-gray-50 transition">
+                            Next →
+                        </a>
+                        {% else %}
+                        <button disabled class="px-4 py-2 rounded-lg text-sm font-medium border text-gray-400 border-gray-200 cursor-not-allowed">
                             Next →
                         </button>
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
@@ -223,104 +213,14 @@
     </div>
 </div>
 
-<script>
-// Sidebar Toggle Function
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const icon = document.getElementById('toggle-icon');
-    const sidebarContent = document.querySelectorAll('.sidebar-content');
-    
-    // Check the current sidebar width and toggle accordingly
-    if (sidebar.style.width === '240px') {
-        sidebar.style.width = '80px';
-        sidebarContent.forEach(el => el.style.display = 'none');
-        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>';
-        localStorage.setItem('sidebarState', 'closed'); // Save state to localStorage
-    } else {
-        sidebar.style.width = '240px';
-        setTimeout(() => {
-            sidebarContent.forEach(el => el.style.display = '');
-        }, 200);
-        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>';
-        localStorage.setItem('sidebarState', 'open'); // Save state to localStorage
-    }
-}
-
-// Ensure the sidebar state is remembered when navigating to the User Detail page
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebar = document.getElementById('sidebar');
-    const savedState = localStorage.getItem('sidebarState');
-    
-    if (savedState === 'closed') {
-        sidebar.style.width = '80px';
-        const sidebarContent = document.querySelectorAll('.sidebar-content');
-        sidebarContent.forEach(el => el.style.display = 'none');
-        document.getElementById('toggle-icon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>';
-    }
-});
-
-// AJAX Pagination
-function loadPage(pageNum) {
-    if (!pageNum) return;
-    
-    const form = document.getElementById('filter-form');
-    const formData = new FormData(form);
-    const params = new URLSearchParams(formData);
-    params.set('page', pageNum);
-    
-    // Show loading
-    const userList = document.getElementById('user-list');
-    userList.style.opacity = '0.5';
-    userList.style.pointerEvents = 'none';
-    
-    fetch(`?${params.toString()}`, {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => response.text())
-    .then(html => {
-        // Parse the HTML and extract just the user list
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const newUserList = doc.getElementById('user-list');
-        const newPagination = doc.querySelector('.flex.justify-center.items-center.gap-3.mt-5');
-        
-        if (newUserList) {
-            userList.innerHTML = newUserList.innerHTML;
-        }
-        
-        // Update pagination
-        const paginationContainer = document.querySelector('.flex.justify-center.items-center.gap-3.mt-5');
-        if (paginationContainer && newPagination) {
-            paginationContainer.innerHTML = newPagination.innerHTML;
-        }
-        
-        // Update URL without reload
-        window.history.pushState({}, '', `?${params.toString()}`);
-        
-        // Restore
-        userList.style.opacity = '1';
-        userList.style.pointerEvents = 'auto';
-        
-        // Scroll to top of user list
-        userList.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        userList.style.opacity = '1';
-        userList.style.pointerEvents = 'auto';
-    });
-}
-
-// Toggle User Status
-function toggleUserStatus(userId, isActive) {
-    const action = isActive ? 'deactivate' : 'activate';
-    if (!confirm(`Are you sure you want to ${action} this user?`)) {
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
+// Delete User Function
+function deleteUser(userId, username) {
+    if (!confirm(`Are you sure you want to permanently delete user "${username}"? This action cannot be undone.`)) {
         return;
     }
 
-    fetch(`/user/admin/users/${userId}/deactivate/`, {
+    fetch(`/accounts/dashboard/users/${userId}/delete/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': '{{ csrf_token }}',
@@ -330,6 +230,7 @@ function toggleUserStatus(userId, isActive) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            alert(data.message);
             location.reload();
         } else {
             alert(data.error || 'An error occurred');
@@ -351,21 +252,6 @@ setTimeout(() => {
         setTimeout(() => msg.remove(), 300);
     });
 }, 5000);
-
-const createOrganizerBtn = document.getElementById('createOrganizerBtn');
-const modal = document.getElementById('createOrganizerModal');
-const closeModalBtn = document.getElementById('closeModalBtn');
-
-// Show the modal when the button is clicked
-createOrganizerBtn.addEventListener('click', function(event) {
-    event.preventDefault(); // Prevent redirect
-    modal.classList.remove('hidden');
-});
-
-// Hide the modal when the close button is clicked
-closeModalBtn.addEventListener('click', function() {
-    modal.classList.add('hidden');
-});
 </script>
 
 <style>
@@ -381,15 +267,6 @@ closeModalBtn.addEventListener('click', function() {
 }
 .animate-slide-in {
     animation: slide-in 0.3s ease;
-}
-
-/* Smooth transitions for sidebar */
-#sidebar {
-    transition: width 0.3s ease-in-out;
-}
-
-.sidebar-content {
-    transition: opacity 0.2s ease-in-out;
 }
 </style>
 {% endblock %}
