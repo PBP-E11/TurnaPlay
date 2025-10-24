@@ -1,0 +1,89 @@
+{% load static %}
+<!-- Sidebar Component -->
+<div id="sidebar" class="bg-[#494598] p-5 flex flex-col transition-all duration-300 ease-in-out" style="width: 240px;">
+    <!-- Header dengan toggle button -->
+    <div class="flex items-center justify-between mb-10">
+        <div class="text-lg font-bold text-white flex items-center gap-2 sidebar-content">
+            🏆 <span>TurnaPlay</span>
+        </div>
+        <button onclick="toggleSidebar()" class="w-full text-white hover:bg-white/10 p-1.5 flex items-center justify-center rounded-lg transition">
+            <svg id="toggle-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+            </svg>
+        </button>
+    </div>
+    
+    <nav class="flex-1 space-y-1.5">
+        <a href="{% url 'user_account:admin_manage_users' %}" 
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'admin_manage_users' or request.resolver_match.url_name == 'admin_user_detail' or request.resolver_match.url_name == 'admin_create_organizer' %}bg-white text-[#494598] font-medium{% else %}text-white/70 hover:bg-white/10 hover:text-white{% endif %}">
+            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+            </svg>
+            <span class="sidebar-content">Manage Users</span>
+        </a>
+        <a href="{% url 'user_account:admin_manage_tournaments' %}"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'admin_manage_tournaments' or request.resolver_match.url_name == 'admin_tournament_detail' %}bg-white text-[#494598] font-medium{% else %}text-white/70 hover:bg-white/10 hover:text-white{% endif %}">
+            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+            </svg>
+            <span class="sidebar-content">Manage Tournaments</span>
+        </a>
+    </nav>
+    
+    <form method="post" action="{% url 'user_account:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="w-full bg-red-600 text-white px-3 py-2.5 rounded-lg font-medium transition-all hover:bg-red-700 text-sm flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            <span class="sidebar-content">Log Out</span>
+        </button>
+    </form>
+</div>
+
+<script>
+// Sidebar Toggle Function
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const icon = document.getElementById('toggle-icon');
+    const sidebarContent = document.querySelectorAll('.sidebar-content');
+    
+    if (sidebar.style.width === '240px') {
+        sidebar.style.width = '80px';
+        sidebarContent.forEach(el => el.style.display = 'none');
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>';
+        localStorage.setItem('sidebarState', 'closed');
+    } else {
+        sidebar.style.width = '240px';
+        setTimeout(() => {
+            sidebarContent.forEach(el => el.style.display = '');
+        }, 200);
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>';
+        localStorage.setItem('sidebarState', 'open');
+    }
+}
+
+// Remember sidebar state on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('sidebar');
+    const savedState = localStorage.getItem('sidebarState');
+    
+    if (savedState === 'closed') {
+        sidebar.style.width = '80px';
+        const sidebarContent = document.querySelectorAll('.sidebar-content');
+        sidebarContent.forEach(el => el.style.display = 'none');
+        document.getElementById('toggle-icon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>';
+    }
+});
+</script>
+
+<style>
+/* Smooth transitions for sidebar */
+#sidebar {
+    transition: width 0.3s ease-in-out;
+}
+
+.sidebar-content {
+    transition: opacity 0.2s ease-in-out;
+}
+</style>
