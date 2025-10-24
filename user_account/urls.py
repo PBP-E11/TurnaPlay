@@ -16,9 +16,9 @@ urlpatterns = [
     path('profile/delete/', views.delete_account_view, name='delete_account'),
     
     # Admin Dashboard
-    path('', views.admin_dashboard, name='admin_dashboard'),
-    path('users/', views.admin_manage_users, name='admin_manage_users'),
-    path('users/create-organizer/', views.admin_create_organizer, name='admin_create_organizer'),
-    path('users/<uuid:user_id>/', views.admin_user_detail, name='admin_user_detail'),
-    path('users/<uuid:user_id>/deactivate/', views.admin_deactivate_user, name='admin_deactivate_user'),
+    path('admin/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin/users/', views.admin_manage_users, name='admin_manage_users'),
+    path('admin/users/create-organizer/', views.admin_create_organizer, name='admin_create_organizer'),
+    path('admin/users/<uuid:user_id>/', views.admin_user_detail, name='admin_user_detail'),
+    path('admin/users/<uuid:user_id>/deactivate/', views.admin_deactivate_user, name='admin_deactivate_user'),
 ]
