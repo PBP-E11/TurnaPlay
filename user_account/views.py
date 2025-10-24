@@ -345,9 +345,10 @@ def profile_view(request):
     """User profile page"""
     user = request.user
     
-    # Get user's tournament history
-    tournaments = []  # TODO: Query from Tournament model
-    
+    # Get tournaments where user is a participant
+    tournaments = Tournament.objects.filter(
+        participants=user
+    ).select_related('organizer', 'tournament_format__game')
     context = {
         'user': user,
         'tournaments': tournaments,
