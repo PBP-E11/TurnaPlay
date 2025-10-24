@@ -21,9 +21,9 @@
         </div>
         {% endif %}
 
-        <form method="post">
+        <form id="createOrganizerForm" method="post" action="{% url 'user_account:admin_create_organizer' %}">
             {% csrf_token %}
-            
+            {{ form.as_p }}
             <div class="mb-5">
                 <label for="id_username" class="block text-gray-700 font-medium mb-2 text-sm">
                     Username <span class="text-red-600">*</span>
@@ -97,4 +97,37 @@
         </form>
     </div>
 </div>
+<script>
+    document.getElementById('createOrganizerForm').addEventListener('submit', function(event) {
+        event.preventDefault();  // Prevent normal form submission
+
+        const formData = new FormData(this);  // Create FormData from the form
+
+        // Send data using fetch (AJAX)
+        fetch("{% url 'user_account:admin_create_organizer' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',  // CSRF token for security
+                'X-Requested-With': 'XMLHttpRequest'  // Indicate that this is an AJAX request
+            }
+        })
+        .then(response => response.json())  // Get JSON response from the server
+        .then(data => {
+            if (data.success) {
+                // Close the modal if successful
+                closeModal();  // Function to close the modal
+                alert('Organizer account created successfully!');
+                // Optionally, redirect or update the UI
+            } else {
+                // Show error if form is invalid
+                alert('Failed to create organizer: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('There was an error processing your request.');
+        });
+    });
+</script>
 {% endblock %}

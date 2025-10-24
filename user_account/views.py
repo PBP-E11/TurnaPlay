@@ -81,8 +81,18 @@ def admin_create_organizer(request):
             user = form.save(commit=False)
             user.role = 'organizer'
             user.save()
+            
+            # Check if the request is AJAX using the 'X-Requested-With' header
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'message': 'Organizer account created successfully!'})
+            
             messages.success(request, f'Organizer account {user.username} created successfully!')
             return redirect('user_account:admin_manage_users')
+        
+        # If form is not valid, send error response (AJAX)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Form is invalid'})
+    
     else:
         form = CreateOrganizerForm()
     
