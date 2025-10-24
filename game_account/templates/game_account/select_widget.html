@@ -1,0 +1,50 @@
+<div id="ga-widget" class="fixed bottom-4 right-4 bg-white border rounded shadow p-3 w-64">
+  <div class="flex justify-between items-center mb-2">
+    <strong>Choose account</strong>
+    <button id="ga-widget-close" class="text-sm">✕</button>
+  </div>
+  <div id="ga-widget-list" class="space-y-1">
+    <!-- items inserted here -->
+  </div>
+</div>
+
+<script>
+(function(){
+  async function fetchAccounts(gameId) {
+    const url = new URL('/game-accounts/select_widget/', window.location.origin);
+    if (gameId) url.searchParams.set('game', gameId);
+    const res = await fetch(url, {credentials: 'same-origin'});
+    if (!res.ok) return [];
+    return await res.json();
+  }
+
+  function renderList(items) {
+    const container = document.getElementById('ga-widget-list');
+    container.innerHTML = '';
+    items.forEach(it => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'w-full text-left px-2 py-1 hover:bg-gray-100';
+      btn.textContent = it.ingame_name;
+      btn.dataset.gaId = it.id;
+      btn.addEventListener('click', () => {
+        const ev = new CustomEvent('gameaccount:selected', {detail: {id: it.id, name: it.ingame_name}});
+        window.dispatchEvent(ev);
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  window.showGameAccountWidget = async function(gameId){
+    const widget = document.getElementById('ga-widget');
+    widget.style.display = 'block';
+    const items = await fetchAccounts(gameId);
+    renderList(items);
+  }
+
+  document.getElementById('ga-widget-close').addEventListener('click', () => {
+    document.getElementById('ga-widget').style.display = 'none';
+  });
+
+})();
+</script>
