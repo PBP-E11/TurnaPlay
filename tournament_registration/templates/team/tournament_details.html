@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+{# Desktop #}
+<header class="mx-5">
+  <div class="hidden xl:flex w-full my-10 justify-center gap-5">
+    <div class="relative w-[40rem] aspect-video" style="flex-shrink: 1">
+      <div class="w-full h-full object-fill rounded-2xl overflow-hidden">
+        <img src="{{ tournament.banner }}" class="object-cover">
+      </div>
+
+      {# Purple block #}
+      <div class="bg-indigo-800 w-lvw h-1/2 absolute -left-[100lvw] bottom-1/2 translate-y-1/2 z-[-1]"></div>
+    </div>
+
+    <div class="my-2 max-w-[25%]" style="flex-shrink: 2">
+      <div class="my-2">
+        <h1 class="font-bold text-6xl">{{ tournament.tournament_name }}</h1>
+
+        <div class="flex">
+          {# Calendar #}
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="#D20A0A" d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
+          <p class="font-bold text-red-600 text-2xl">{{ tournament.tournament_date | date:"Y F d" }}<p>
+        </div>
+      </div>
+
+      <p>
+      {{ tournament.description }}
+      </p>
+    </div>
+  </div>
+</header>
+
+{# Mobile #}
+<header class="flex xl:hidden flex-col items-center my-10">
+  <div class="mx-5">
+    <div class="relative max-w-[32rem] aspect-video">
+      <div class="w-full h-full object-fill rounded-2xl overflow-hidden">
+        <img src="{{ tournament.banner }}" class="object-cover">
+      </div>
+
+      {# Purple block #}
+      <div class="bg-indigo-700 w-lvw h-1/2 absolute -left-[100lvw] bottom-1/2 translate-y-1/2 z-[-1]"></div>
+    </div>
+  </div>
+
+  <div class="my-2 mx-10 text-center max-w-[40rem]">
+    <div class="flex flex-col items-center my-2 mx-auto">
+      <h1 class="font-bold text-4xl">{{ tournament.tournament_name }}</h1>
+
+      <div class="flex">
+        {# Calendar #}
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#D20A0A" d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
+        <p class="font-bold text-red-600">{{ tournament.tournament_date | date:"Y F d" }}<p>
+      </div>
+    </div>
+
+    <p class="text-justify">
+    {{ tournament.description }}
+    </p>
+
+  </div>
+</header>
+
+<main class="flex items-center flex-col">
+  <div class="flex justify-center gap-4 w-[80rem] mx-10 my-5 flex-col xl:flex-row">
+    <!-- Card 1 -->
+    <div class="flex flex-grow items-center gap-3 border border-gray-500 rounded-xl px-5 py-3">
+      <div class="w-8 h-8 rounded-full bg-blue-600"></div>
+      <div class="flex flex-col">
+        <span class="text-gray-500 text-sm">Format</span>
+        <span class="font-semibold text-black">{{ tournament.tournament_format.name }}</span>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="flex flex-grow items-center gap-3 border border-gray-500 rounded-xl px-5 py-3">
+      <div class="w-8 h-8 rounded-full bg-red-600"></div>
+      <div class="flex flex-col">
+        <span class="text-gray-500 text-sm">Total Prize Pool</span>
+        <span class="font-semibold text-black">Rp {{ tournament.prize_pool }}</span>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="flex flex-grow items-center gap-3 border border-gray-500 rounded-xl px-5 py-3">
+      <div class="w-8 h-8 rounded-full bg-blue-600"></div>
+      <div class="flex flex-col">
+        <span class="text-gray-500 text-sm">Slot terbatas</span>
+        <span class="font-semibold text-black">{{ tournament.team_maximum_count }} tim</span>
+      </div>
+    </div>
+  </div>
+
+  {% if user.is_authenticated %}
+  <a href="{% url 'team:create_team_form' tournament.id %}">
+    <button class="w-64 h-16 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-2xl my-5">
+      Daftar Sekarang
+    </button>
+  </a>
+  {% else %}
+  {% endif %}
+</main>
+
+{% include 'footer.html' %}
+{% endblock content %}

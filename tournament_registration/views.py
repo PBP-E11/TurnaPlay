@@ -176,3 +176,11 @@ def _is_user_in_team(user: UserAccount, team: TournamentRegistration) -> bool:
         team=team,
         game_account__user=user,
     ).exists()
+
+@require_http_methods(["GET"])
+def tournament_details(request: HttpRequest, tournament_id: uuid.UUID) -> HttpResponse:
+    tournament = get_object_or_404(Tournament, pk=tournament_id)
+    context = {
+        'tournament': tournament
+    }
+    return render(request, 'team/tournament_details.html', context)
