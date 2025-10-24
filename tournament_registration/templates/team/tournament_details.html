@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+{# Desktop #}
+<header class="mx-5">
+  <div class="hidden xl:flex w-full my-10 justify-center gap-5">
+    <div class="relative w-[40rem] aspect-video" style="flex-shrink: 1">
+      <div class="w-full h-full object-fill rounded-2xl overflow-hidden">
+        <img src="{{ tournament.banner }}" class="object-cover">
+      </div>
+
+      {# Purple block #}
+      <div class="bg-indigo-800 w-lvw h-1/2 absolute -left-[100lvw] bottom-1/2 translate-y-1/2 z-[-1]"></div>
+    </div>
+
+    <div class="my-2 max-w-[25%]" style="flex-shrink: 2">
+      <div class="my-2">
+        <h1 class="font-bold text-6xl">{{ tournament.tournament_name }}</h1>
+
+        <div class="flex">
+          {# Calendar #}
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="#D20A0A" d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
+          <p class="font-bold text-red-600 text-2xl">{{ tournament.tournament_date | date:"Y F d" }}<p>
+        </div>
+      </div>
+
+      <p>
+      {{ tournament.description }}
+      </p>
+    </div>
+  </div>
+</header>
+
+{# Mobile #}
+<header class="flex xl:hidden flex-col items-center my-10">
+  <div class="mx-5">
+    <div class="relative max-w-[32rem] aspect-video">
+      <div class="w-full h-full object-fill rounded-2xl overflow-hidden">
+        <img src="{{ tournament.banner }}" class="object-cover">
+      </div>
+
+      {# Purple block #}
+      <div class="bg-indigo-700 w-lvw h-1/2 absolute -left-[100lvw] bottom-1/2 translate-y-1/2 z-[-1]"></div>
+    </div>
+  </div>
+
+  <div class="my-2 mx-10 text-center max-w-[40rem]">
+    <div class="flex flex-col items-center my-2 mx-auto">
+      <h1 class="font-bold text-4xl">{{ tournament.tournament_name }}</h1>
+
+      <div class="flex">
+        {# Calendar #}
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#D20A0A" d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5z"/></svg>
+        <p class="font-bold text-red-600">{{ tournament.tournament_date | date:"Y F d" }}<p>
+      </div>
+    </div>
+
+    <p class="text-justify">
+    {{ tournament.description }}
+    </p>
+
+  </div>
+</header>
+
+<main class="flex items-center flex-col">
+  <div class="flex justify-center gap-4 w-[80rem] mx-10 my-5 flex-col xl:flex-row">
+    <!-- Card 1 -->
+    <div class="flex flex-grow items-center gap-3 border border-gray-500 rounded-xl px-5 py-3">
+      <div class="w-8 h-8 rounded-full bg-blue-600">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="#ffffff" d="M11 2v2.07A8 8 0 0 0 4.07 11H2v2h2.07A8 8 0 0 0 11 19.93V22h2v-2.07A8 8 0 0 0 19.93 13H22v-2h-2.07A8 8 0 0 0 13 4.07V2m-2 4.08V8h2V6.09c2.5.41 4.5 2.41 4.92 4.91H16v2h1.91c-.41 2.5-2.41 4.5-4.91 4.92V16h-2v1.91C8.5 17.5 6.5 15.5 6.08 13H8v-2H6.09C6.5 8.5 8.5 6.5 11 6.08M12 11a1 1 0 0 0-1 1a1 1 0 0 0 1 1a1 1 0 0 0 1-1a1 1 0 0 0-1-1"/></svg>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-gray-500 text-sm">Format</span>
+        <span class="font-semibold text-black">{{ tournament.tournament_format.name }}</span>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="flex flex-grow items-center gap-3 border border-gray-500 rounded-xl px-5 py-3">
+      <div class="w-8 h-8 rounded-full bg-red-600">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="#ffffff" d="M11.997 15.48q-.668 0-1.14-.475t-.472-1.143t.475-1.14t1.144-.472t1.14.476t.472 1.143t-.476 1.14t-1.143.472M8.375 7.75h7.25L17.491 4H6.51zM8.631 20h6.738q1.93 0 3.28-1.351Q20 17.298 20 15.363q0-.808-.277-1.574t-.8-1.395L15.881 8.75H8.119l-3.042 3.644q-.523.629-.8 1.395Q4 14.554 4 15.363q0 1.935 1.351 3.286T8.631 20"/></svg>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-gray-500 text-sm">Total Prize Pool</span>
+        <span class="font-semibold text-black">Rp {{ tournament.prize_pool }}</span>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="flex flex-grow items-center gap-3 border border-gray-500 rounded-xl px-5 py-3">
+      <div class="w-8 h-8 rounded-full bg-blue-600">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="#ffffff" d="M12 10a4 4 0 1 0 0-8a4 4 0 0 0 0 8m-6.5 3a2.5 2.5 0 1 0 0-5a2.5 2.5 0 0 0 0 5M21 10.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0m-9 .5a5 5 0 0 1 5 5v6H7v-6a5 5 0 0 1 5-5m-7 5c0-.693.1-1.362.288-1.994l-.17.014A3.5 3.5 0 0 0 2 17.5V22h3zm17 6v-4.5a3.5 3.5 0 0 0-3.288-3.494c.187.632.288 1.301.288 1.994v6z"/></svg>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-gray-500 text-sm">Slot terbatas</span>
+        <span class="font-semibold text-black">{{ tournament.team_maximum_count }} tim</span>
+      </div>
+    </div>
+  </div>
+
+  {% if user.is_authenticated %}
+  <a href="{% url 'team:create_team_form' tournament.id %}">
+    <button class="w-64 h-16 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-2xl my-5">
+      Daftar Sekarang
+    </button>
+  </a>
+  {% else %}
+  {% endif %}
+</main>
+
+{% include 'footer.html' %}
+{% endblock content %}
