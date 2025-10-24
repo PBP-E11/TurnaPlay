@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.db.models import Q, ExpressionWrapper, BooleanField
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -50,7 +51,24 @@ class TournamentFormat(models.Model):
     def __str__(self):
         return f"{self.name} ({self.game.name}, {self.team_size} players)"
 
-
+class TournamentManager(models.Manager):
+    """
+    Custom manager for the Tournament model that dynamically annotates
+    the 'is_active' status.
+    """
+    def get_queryset(self):
+        today = timezone.localdate()
+        
+        # Annotate a new field 'is_active' to every query.
+        # This field is True if the tournament_date is today or in the past,
+        # and False if it's in the future or null.
+        return super().get_queryset().annotate(
+            is_active=ExpressionWrapper(
+                Q(tournament_date__isnull=False) & Q(tournament_date__gte=today),
+                output_field=BooleanField()
+            )
+        )
+    
 # --- PRIMARY TOURNAMENT MODEL ---
 class Tournament(models.Model):
     """
@@ -71,6 +89,7 @@ class Tournament(models.Model):
         verbose_name=_("Organizer"),
         limit_choices_to={'role': ['organizer', 'admin']}  # both admin and organizer can create tournament
     )
+    objects = TournamentManager()  # Tell Tournament to use our new manager
 
     # FK tournament_format.id
     tournament_format = models.ForeignKey(
