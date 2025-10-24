@@ -15,10 +15,14 @@ urlpatterns = [
     path('profile/update/', views.update_profile_view, name='update_profile'),
     path('profile/delete/', views.delete_account_view, name='delete_account'),
     
-    # Admin Dashboard
+    # Admin Dashboard - Users
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('dashboard/users/', views.admin_manage_users, name='admin_manage_users'),
     path('dashboard/users/create-organizer/', views.admin_create_organizer, name='admin_create_organizer'),
     path('dashboard/users/<uuid:user_id>/', views.admin_user_detail, name='admin_user_detail'),
-    path('dashboard/users/<uuid:user_id>/deactivate/', views.admin_deactivate_user, name='admin_deactivate_user'),
+    path('dashboard/users/<uuid:user_id>/delete/', views.admin_delete_user, name='admin_delete_user'),
+    
+    # Admin Dashboard - Tournaments
+    path('dashboard/tournaments/', views.admin_manage_tournaments, name='admin_manage_tournaments'),
+    path('dashboard/tournaments/<uuid:tournament_id>/', views.admin_tournament_detail, name='admin_tournament_detail'),
 ]
