@@ -174,12 +174,11 @@
                                         t.textContent = msg;
                                         t.style.pointerEvents = 'auto';
                                         t.style.position = 'fixed';
-                                        // place toast at top-center so it never overlaps the footer
-                                        t.style.top = '1.5rem';
-                                        // ensure bottom is not set
-                                        t.style.bottom = '';
-                                        t.style.left = '50%';
-                                        t.style.transform = 'translateX(-50%)';
+                                        // place toast at top-right so it never overlaps the footer
+                                        t.style.top = '2.5rem';
+                                        t.style.right = '1.5rem';
+                                        t.style.left = '';
+                                        t.style.transform = '';
                                         t.style.padding = '0.5rem 1rem';
                                         t.style.borderRadius = '0.5rem';
                                         t.style.color = 'white';
@@ -192,6 +191,29 @@
                                         requestAnimationFrame(()=> t.style.opacity = '1');
                                         setTimeout(()=> { t.style.opacity = '0'; setTimeout(()=> t.remove(), 140); }, 3000);
                                     }
+                                    try {
+                                        window.showDebugToast = function(msg, isError){
+                                            try {
+                                                const portal = getToastPortal();
+                                                const t = document.createElement('div');
+                                                t.textContent = msg;
+                                                t.style.pointerEvents = 'auto';
+                                                t.style.position = 'fixed';
+                                                t.style.top = '2.5rem';
+                                                t.style.right = '1.5rem';
+                                                t.style.left = '';
+                                                t.style.transform = '';
+                                                t.style.padding = '0.5rem 1rem';
+                                                t.style.borderRadius = '0.5rem';
+                                                t.style.color = 'white';
+                                                t.style.backgroundColor = isError ? '#ef4444' : '#16a34a';
+                                                t.style.zIndex = '99999999999';
+                                                portal.appendChild(t);
+                                                setTimeout(()=>{ try{ t.remove(); }catch(e){} }, 10000);
+                                                return t;
+                                            } catch(e){ console.error('showDebugToast error', e); }
+                                        }
+                                    } catch(e) {}
 
                                     body.innerHTML = `
                                             <div class="flex justify-between items-start mb-4">

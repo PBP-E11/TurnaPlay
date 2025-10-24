@@ -1,4 +1,4 @@
-<div id="ga-widget" style="display:none;" class="fixed bottom-4 right-4 bg-white border rounded shadow p-3 w-64">
+<div id="ga-widget" style="display:none;" class="fixed left-1/2 transform -translate-x-1/2 bg-white border rounded shadow p-3 w-72 md:w-96 z-50">
   <div class="flex justify-between items-center mb-2">
     <strong>Choose account</strong>
     <button id="ga-widget-close" class="text-sm">✕</button>
@@ -44,12 +44,12 @@
     t.textContent = msg;
     t.style.pointerEvents = 'auto';
     t.style.position = 'fixed';
-  // place toast at top-center so it never overlaps the footer
-  t.style.top = '1.5rem';
-  // ensure it doesn't also have bottom set
-  t.style.bottom = '';
-    t.style.left = '50%';
-    t.style.transform = 'translateX(-50%)';
+    // position toast at top-right
+  t.style.top = '2.5rem';
+    t.style.right = '1.5rem';
+    // clear left/transform in case they were set earlier
+    t.style.left = '';
+    t.style.transform = '';
     t.style.padding = '0.5rem 1rem';
     t.style.borderRadius = '0.5rem';
     t.style.color = 'white';
