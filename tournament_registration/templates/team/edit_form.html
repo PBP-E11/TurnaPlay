@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% include 'navbar.html' %}
+{% include 'team/header.html' %}
+
+<main class="mx-10 my-10 flex flex-col items-center">
+  <form method="POST" class="w-full max-w-4xl">
+    {% csrf_token %}
+    <h2 class="text-indigo-800 text-xl mb-10 font-semibold text-center">Daftar Kompetisi</h2>
+
+    <div class="mb-8 xl:flex gap-8">
+      <section class="mb-8 flex-1">
+        <h3 class="mb-2 font-medium">Nama Tim</h3>
+        <div class="border border-gray-500 rounded-lg p-4">
+          {{ team_form.team_name }}
+        </div>
+      </section>
+
+      <section class="mb-8 flex-1">
+        <h3 class="mb-2 font-medium">Leader</h3>
+        <div class="border border-gray-500 rounded-lg p-4 space-y-4">
+          {{ leader_form.username }}
+          {{ leader_form.game_account }}
+        </div>
+      </section>
+    </div>
+
+    <!-- Confirmed members list -->
+    <section class="mb-8 w-full">
+      <h3 class="mb-2 font-medium">Anggota Tim</h3>
+      {% if members %}
+        <div class="border border-gray-500 rounded-lg divide-y divide-gray-300">
+          {% for member in members %}
+            <div class="p-4 flex justify-between items-center">
+              <div>
+                <p class="font-semibold">{{ member.game_account.owner.username }}</p>
+                <p class="text-gray-500 text-sm">{{ member.game_account }}</p>
+              </div>
+              <button
+                type="button"
+                class="bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-3 py-1 rounded-lg"
+                data-member-id="{{ member.id }}"
+              >
+                Keluarkan
+              </button>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-gray-500 italic">Belum ada anggota lain yang terkonfirmasi.</p>
+      {% endif %}
+    </section>
+
+    <div class="flex justify-between flex-wrap gap-4">
+      <button type="button" class="w-64 h-16 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-2xl">
+        Bubarkan Tim
+      </button>
+      <button type="submit" class="w-64 h-16 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-2xl">
+        Perbarui Data Tim
+      </button>
+    </div>
+  </form>
+</main>
+
+{% include 'footer.html' %}
+{% endblock content %}

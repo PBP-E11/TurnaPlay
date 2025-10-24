@@ -74,16 +74,9 @@ class TeamMember(models.Model):
     # Is Leader
     is_leader = models.BooleanField(default=False)
 
-    # Ordering
-    order = models.PositiveSmallIntegerField(default=0)
-
     class Meta:
         verbose_name = 'Team Member'
         verbose_name_plural = 'Team Members'
-        ordering = ['order']
-        constraints = [
-            models.UniqueConstraint(fields=['team', 'order'], name='unique_member_order_in_a_team')
-        ]
 
     def clean(self):
         super().clean()
@@ -112,23 +105,6 @@ class TeamMember(models.Model):
             raise ValidationError("This team must have a leader.")
         elif (leader_count > 1):
             raise ValidationError("This team already has a leader.")
-
-        # Cap members per team based on tournament setting
-        max_members = tournament.tournament_format.team_size
-        count = TeamMember.objects.filter(team=self.team).exclude(pk=self.pk).count()
-        if count + 1 > max_members:
-            raise ValidationError(f"Cannot have more than {max_members} members in this team.")
-
-        # Enforce order doesn’t exceed team capacity
-        if max_members is not None and self.order >= max_members:
-            raise ValidationError(f"Order must be less than {max_members} for this tournament format.")
-
-        # Make sure order 0 is only for leader
-        if self.order == 0 and not is_leader:
-            raise ValidationError(f"Order 0 is only for leader")
-
-        if is_leader and self.order != 0:
-            raise ValidationError(f"Leader must have order 0")
 
     def __str__(self):
         return f'{self.game_account} ({self.team}) {"leader" if self.is_leader else "member"}'

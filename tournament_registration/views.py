@@ -40,7 +40,6 @@ def new_team_form(request: HttpRequest, tournament_id: uuid.UUID) -> HttpRespons
             is_leader=True,
             game_account=leader_form.cleaned_data['game_account'],
             team=team_entry,
-            order=0
         )
         return edit_team_form(request, team_entry.id)
 
@@ -52,12 +51,47 @@ def new_team_form(request: HttpRequest, tournament_id: uuid.UUID) -> HttpRespons
     return render(request, 'team/new_form.html', context)
 
 
-@require_http_methods(['GET', 'POST'])
+@require_http_methods(["GET", "POST"])
 @login_required
 def edit_team_form(request: HttpRequest, team_id: uuid.UUID) -> HttpResponse:
+    # fetch the team
     team = get_object_or_404(TournamentRegistration, pk=team_id)
-    members = TournamentRegistration.members
 
-    tournament = team.tournament
+    members_qs = team.members.select_related("game_account__user")
+
+    # find leader TeamMember (if any)
+    leader_member = members_qs.filter(is_leader=True).first()
+
+    # Team name form (this is the one we accept POSTs for)
     team_form = TeamNameForm(request.POST or None, instance=team)
-    leader_form = LeaderForm(request.POST or None, instance=members.first(order=0))
+
+    if request.method == "POST" and team_form.is_valid():
+        # (optional) permission check: only allow team leader to rename
+        if leader_member and getattr(leader_member.game_account, "user", None) != request.user:
+            return HttpResponseForbidden("Only the team leader can edit the team.")
+
+        # save name change
+        team_form.save()
+        # redirect to the same page to avoid double submit
+        return redirect("team:edit_team_form", team_id=team.id)
+
+    # Build a display-only leader form (not used for POST processing here).
+    # We use initial so the form renders current values; LeaderForm disables username
+    # so it acts as a read-only display.
+    leader_initial = {}
+    if leader_member:
+        leader_initial = {
+            "username": getattr(leader_member.game_account.user, "username", ""),
+            "game_account": leader_member.game_account_id,
+        }
+
+    # Pass user param so the form's queryset for game_account is restricted (if you've implemented that)
+    leader_form = LeaderForm(initial=leader_initial, user=leader_member.game_account.user if leader_member else request.user)
+
+    context = {
+        "team": team,
+        "team_form": team_form,
+        "leader_form": leader_form,   # display only — not processed on POST here
+        "members": members_qs,        # ordered members to render in template
+    }
+    return render(request, "team/edit_form.html", context)

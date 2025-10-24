@@ -16,8 +16,12 @@ class MemberForm(forms.Form):
         super().__init__(*args, **kwargs)
         if user:
             self.fields['game_account'].queryset = GameAccount.objects.filter(user=user)
+        # Set readonly (or not)
         self.fields['username'].widget.attrs['readonly'] = readonly
         self.fields['game_account'].widget.attrs['readonly'] = readonly
+
+        # Make this field show the ingame_name instead of debug string representation
+        self.fields['game_account'].label_from_instance = lambda obj: obj.ingame_name
 
 class LeaderForm(MemberForm):
     def __init__(self, *args, **kwargs):
