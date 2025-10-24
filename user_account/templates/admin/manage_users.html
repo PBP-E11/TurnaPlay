@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block meta %}
+<title>Manage Users - TurnaPlay Admin</title>
+{% endblock %}
+
+{% block content %}
+<div class="flex min-h-screen grid grid-flow-row bg-gray-50">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        {% include 'admin/_sidebar.html' %}
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="max-w-7xl mx-auto p-6">
+                <!-- Messages -->
+                {% if messages %}
+                <div class="fixed top-5 right-5 z-50 space-y-2 max-w-md">
+                    {% for message in messages %}
+                    <div class="{% if message.tags == 'error' %}bg-red-500{% else %}bg-green-500{% endif %} text-white px-4 py-3 rounded-lg shadow-lg animate-slide-in text-sm">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold text-gray-900">Manage Users</h1>
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="bg-[#494598] text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium text-sm hover:bg-[#3d3770] transition">
+                            <img src="https://ui-avatars.com/api/?name=Admin&background=fff&color=494598&size=32" class="w-6 h-6 rounded-full">
+                            Admin
+                            <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': open }" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div x-show="open" @click.away="open = false" 
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 transform scale-95"
+                            x-transition:enter-end="opacity-100 transform scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 transform scale-100"
+                            x-transition:leave-end="opacity-0 transform scale-95"
+                            class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
+                            
+                            <a href="{% url 'tournaments:show_main' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                </svg>
+                                Homepage
+                            </a>
+                            
+                            <div class="border-t border-gray-200 my-1"></div>
+                            
+                            <form method="post" action="{% url 'user_account:logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                    </svg>
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-white border border-gray-200 p-5 rounded-xl">
+                        <div class="text-gray-500 text-xs mb-1.5">Total Pengguna</div>
+                        <div class="text-gray-900 text-2xl font-bold">{{ total_users }} <span class="text-sm font-normal text-gray-600">Pengguna</span></div>
+                    </div>
+                    <div class="bg-white border border-gray-200 p-5 rounded-xl">
+                        <div class="text-gray-500 text-xs mb-1.5">Pengguna Aktif</div>
+                        <div class="text-gray-900 text-2xl font-bold">{{ active_users }} <span class="text-sm font-normal text-gray-600">Pengguna</span></div>
+                    </div>
+                </div>
+
+                <!-- Users Section -->
+                <div class="bg-white border border-gray-200 rounded-xl p-5">
+                    <div class="flex justify-between items-center mb-5">
+                        <h2 class="text-lg font-semibold text-gray-900">Pengguna Aktif</h2>
+                        <a href="{% url 'user_account:admin_create_organizer' %}" class="bg-[#494598] text-white px-4 py-2 rounded-lg font-medium transition-all hover:bg-[#3d3770] text-sm">
+                            + Create Organizer
+                        </a>
+                    </div>
+
+                    <!-- Filters -->
+                    <form method="get" id="filter-form" class="grid grid-cols-4 gap-3 mb-5">
+                        <input type="text" name="search" placeholder="Search username..." 
+                            value="{{ search }}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20">
+                        
+                        <select name="role" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20">
+                            <option value="">All Roles</option>
+                            <option value="user" {% if role_filter == 'user' %}selected{% endif %}>User</option>
+                            <option value="organizer" {% if role_filter == 'organizer' %}selected{% endif %}>Organizer</option>
+                            <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                        </select>
+                        
+                        <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20">
+                            <option value="">All Status</option>
+                            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                        
+                        <button type="submit" class="bg-[#494598] text-white px-4 py-2 rounded-lg font-medium transition hover:bg-[#3d3770] text-sm">Filter</button>
+                    </form>
+
+                    <!-- User List -->
+                    <div id="user-list" class="space-y-2.5">
+                        {% for user in users %}
+                        <div class="border border-gray-200 rounded-lg p-4 hover:border-[#494598] hover:shadow-sm transition">
+                            <div class="grid grid-cols-[1fr_auto_auto_auto_auto] gap-5 items-center">
+                                <div>
+                                    <div class="text-xs text-gray-500 mb-0.5">Username</div>
+                                    <div class="font-semibold text-gray-900 text-sm">@{{ user.username }}</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-xs text-gray-500 mb-0.5">Role</div>
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold {% if user.role == 'user' %}bg-blue-100 text-blue-700{% elif user.role == 'organizer' %}bg-orange-100 text-orange-700{% else %}bg-purple-100 text-purple-700{% endif %}">
+                                        {{ user.get_role_display }}
+                                    </span>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-xs text-gray-500 mb-0.5">Status</div>
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 {% if user.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                        {% if user.is_active %}Aktif{% else %}Inactive{% endif %}
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-500 mb-0.5">Tanggal</div>
+                                    <div class="font-medium text-gray-900 text-sm">{{ user.date_joined|date:"d M Y" }}</div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <a href="{% url 'user_account:admin_user_detail' user.id %}" class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
+                                        Detail
+                                    </a>
+                                    <button onclick="deleteUser('{{ user.id }}', '{{ user.username }}')" 
+                                            class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-red-50 text-red-700 hover:bg-red-100">
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-center py-8 text-gray-500 text-sm">No users found</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if users.has_other_pages %}
+                    <div class="flex justify-center items-center gap-3 mt-5 pt-5 border-t border-gray-200">
+                        {% if users.has_previous %}
+                        <a href="?page={{ users.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                           class="px-4 py-2 rounded-lg text-sm font-medium border text-gray-700 border-gray-300 hover:bg-gray-50 transition">
+                            ← Previous
+                        </a>
+                        {% else %}
+                        <button disabled class="px-4 py-2 rounded-lg text-sm font-medium border text-gray-400 border-gray-200 cursor-not-allowed">
+                            ← Previous
+                        </button>
+                        {% endif %}
+                        
+                        <div class="flex items-center gap-2">
+                            {% for num in users.paginator.page_range %}
+                                {% if num == users.number %}
+                                    <span class="px-3 py-2 rounded-lg text-sm font-semibold bg-[#494598] text-white">
+                                        {{ num }}
+                                    </span>
+                                {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+                                    <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                                       class="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
+                                        {{ num }}
+                                    </a>
+                                {% elif num == 1 or num == users.paginator.num_pages %}
+                                    <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                                       class="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
+                                        {{ num }}
+                                    </a>
+                                    {% if num == 1 and users.number > 4 %}
+                                        <span class="text-gray-400">...</span>
+                                    {% elif num == users.paginator.num_pages and users.number < users.paginator.num_pages|add:'-3' %}
+                                        <span class="text-gray-400">...</span>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        
+                        {% if users.has_next %}
+                        <a href="?page={{ users.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                           class="px-4 py-2 rounded-lg text-sm font-medium border text-gray-700 border-gray-300 hover:bg-gray-50 transition">
+                            Next →
+                        </a>
+                        {% else %}
+                        <button disabled class="px-4 py-2 rounded-lg text-sm font-medium border text-gray-400 border-gray-200 cursor-not-allowed">
+                            Next →
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer -->
+    <div class="bg-[#302D74] h-[28px] flex justify-center items-center font-semibold text-xs text-white">
+        © 2025 TurnaPlay - All rights reserved.
+    </div>
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
+// Delete User Function
+function deleteUser(userId, username) {
+    if (!confirm(`Are you sure you want to permanently delete user "${username}"? This action cannot be undone.`)) {
+        return;
+    }
+
+    fetch(`/accounts/dashboard/users/${userId}/delete/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.error || 'An error occurred');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred');
+    });
+}
+
+// Auto-hide messages
+setTimeout(() => {
+    const messages = document.querySelectorAll('.animate-slide-in');
+    messages.forEach(msg => {
+        msg.style.opacity = '0';
+        msg.style.transform = 'translateX(100%)';
+        msg.style.transition = 'all 0.3s';
+        setTimeout(() => msg.remove(), 300);
+    });
+}, 5000);
+</script>
+
+<style>
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+.animate-slide-in {
+    animation: slide-in 0.3s ease;
+}
+</style>
+{% endblock %}

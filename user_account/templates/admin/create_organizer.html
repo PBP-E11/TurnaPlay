@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block meta %}
+<title>Create Organizer - TurnaPlay Admin</title>
+{% endblock %}
+
+{% block content %}
+<div class="flex min-h-screen grid grid-flow-row bg-gray-50">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        {% include 'admin/_sidebar.html' %}
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="max-w-3xl mx-auto p-6">
+                <!-- Breadcrumb -->
+                <div class="flex items-center gap-2 text-sm text-gray-600 mb-6">
+                    <a href="{% url 'user_account:admin_manage_users' %}" class="text-[#494598] hover:underline">Manage Users</a>
+                    <span>›</span>
+                    <span>Create Organizer</span>
+                </div>
+
+                <!-- Form Card -->
+                <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+                    <div class="mb-8">
+                        <h1 class="text-2xl font-bold text-gray-900 mb-2">Create Organizer Account</h1>
+                        <p class="text-gray-600 text-sm">Buat akun organizer untuk mengelola turnamen</p>
+                    </div>
+
+                    <!-- Form Errors -->
+                    {% if form.non_field_errors %}
+                    <div class="bg-red-50 text-red-800 p-4 rounded-lg mb-6 text-sm">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-5">
+                            <label for="{{ form.username.id_for_label }}" class="block text-gray-700 font-medium mb-2 text-sm">
+                                Username <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-red-600 text-xs mt-1">
+                                    {% for error in form.username.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <p class="text-gray-600 text-xs mt-1">Username untuk login</p>
+                        </div>
+
+                        <div class="mb-5">
+                            <label for="{{ form.email.id_for_label }}" class="block text-gray-700 font-medium mb-2 text-sm">
+                                Email <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-red-600 text-xs mt-1">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-5">
+                            <label for="{{ form.display_name.id_for_label }}" class="block text-gray-700 font-medium mb-2 text-sm">
+                                Display Name <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.display_name }}
+                            {% if form.display_name.errors %}
+                                <div class="text-red-600 text-xs mt-1">
+                                    {% for error in form.display_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <p class="text-gray-600 text-xs mt-1">Nama yang akan ditampilkan ke publik</p>
+                        </div>
+
+                        <div class="mb-5">
+                            <label for="{{ form.password.id_for_label }}" class="block text-gray-700 font-medium mb-2 text-sm">
+                                Password <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="text-red-600 text-xs mt-1">
+                                    {% for error in form.password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-8">
+                            <label for="{{ form.password_confirm.id_for_label }}" class="block text-gray-700 font-medium mb-2 text-sm">
+                                Confirm Password <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.password_confirm }}
+                            {% if form.password_confirm.errors %}
+                                <div class="text-red-600 text-xs mt-1">
+                                    {% for error in form.password_confirm.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex gap-3">
+                            <a href="{% url 'user_account:admin_manage_users' %}" class="flex-1 text-center bg-gray-100 text-gray-700 py-3.5 rounded-xl font-semibold transition hover:bg-gray-200">
+                                Cancel
+                            </a>
+                            <button type="submit" class="flex-1 bg-[#494598] text-white py-3.5 rounded-xl font-semibold transition-all hover:bg-[#3d3770] hover:shadow-lg">
+                                Create Organizer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer -->
+    <div class="bg-[#302D74] h-[28px] flex justify-center items-center font-semibold text-xs text-white">
+        © 2025 TurnaPlay - All rights reserved.
+    </div>
+</div>
+{% endblock %}

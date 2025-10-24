@@ -56,12 +56,11 @@ def tournament_create(request):
     if request.method == 'POST':
         form = TournamentCreationForm(request.POST)
         if form.is_valid():
-            # Don't save to DB yet
+            # Set the organizer to the current user (assuming the organizer is a User model)
             tournament = form.save(commit=False)
-
-            tournament.organizer = request.user
-          
+            tournament.organizer = request.user  # Assuming 'organizer' is a ForeignKey to the User model
             tournament.save()
+            # Redirect to main tournament list so the newly created tournament appears
             return redirect(reverse('tournaments:show_main'))
     else:
         form = TournamentCreationForm()
