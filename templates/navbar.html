@@ -6,7 +6,7 @@
     <div class="flex justify-between items-center h-16">
       <!-- Logo -->
       <div class="text-[#494598] flex items-center">
-        <a href="" class="flex items-center space-x-2">
+        <a href="/" class="flex items-center space-x-2">
           <img
             src="{% static 'image/TrophyNavbarLogo.svg' %}"
             alt="Trophy"
@@ -23,13 +23,13 @@
         class="hidden md:flex font-['Montserrat'] font-semibold items-center space-x-7"
       >
         <a
-          href=""
+          href="/"
           class="text-gray-700 text-sm hover:text-indigo-600 font-medium transition-colors"
         >
           Home
         </a>
         <a
-          href=""
+          href="accounts/profile"
           class="text-gray-500 text-sm hover:text-indigo-600 font-medium transition-colors"
         >
           My Profile
@@ -47,19 +47,29 @@
             <div
               class="w-8 h-8 rounded-full bg-white flex items-center justify-center"
             >
-              {% if user.profile_picture %}
+              {% if user.profile_image == 'avatar2' %}
               <img
-                src="{{ user.profile_picture.url }}"
-                alt="{{ user.username }}"
                 class="w-8 h-8 rounded-full object-cover"
+                alt="{{ user.display_name }}"
+                src="{% static 'images/profile_images/hero-estes.png' %}"
+              />
+              {% elif user.profile_image == 'avatar3' %}
+              <img
+                class="w-8 h-8 rounded-full object-cover"
+                alt="{{ user.display_name }}"
+                src="{% static 'images/profile_images/hero-akai.png' %}"
               />
               {% else %}
-              <span class="text-indigo-600 font-semibold text-sm"
-                >{{ user.username|slice:":1"|upper }}</span
-              >
+              <img
+                class="w-8 h-8 rounded-full object-cover"
+                alt="{{ user.display_name }}"
+                src="{% static 'images/profile_images/hero-hayabusa.png' %}"
+              />
               {% endif %}
             </div>
-            <span class="font-medium font-['Montserrat']">{{ user.username|default:"User" }}</span>
+            <span class="font-medium font-['Montserrat']"
+              >{{ user.username|default:"User" }}</span
+            >
             <svg
               class="w-4 h-4"
               fill="none"
@@ -80,14 +90,14 @@
             id="user-dropdown"
             class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50"
           >
-            <a href="" class="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+            <a href="{% url 'user_account:profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100"
               >Profile</a
             >
             <a href="" class="block px-4 py-2 text-gray-700 hover:bg-gray-100"
               >Settings</a
             >
             <hr class="my-1" />
-            <a href="" class="block px-4 py-2 text-red-600 hover:bg-gray-100"
+            <a href="{% url 'user_account:logout' %}" class="block px-4 py-2 text-red-600 hover:bg-gray-100"
               >Logout</a
             >
           </div>
@@ -97,13 +107,13 @@
           class="font-['Montserrat'] font-semibold flex items-center space-x-4 pl-4"
         >
           <a
-            href=""
+            href="{%url 'user_account:register' %}"
             class="text-[#494598] border border-indigo-600 bg-transparent text-xs px-6 py-2 rounded-lg hover:bg-indigo-50 transition-colors font-medium"
           >
             Register
           </a>
           <a
-            href=""
+            href="{%url 'user_account:login' %}"
             class="bg-[#494598] text-xs text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium"
           >
             Login
@@ -138,10 +148,10 @@
     <!-- Mobile Menu (Hidden by default) -->
     <div id="mobile-menu" class="hidden md:hidden pb-4">
       <div class="flex flex-col space-y-2">
-        <a href="" class="text-gray-700 hover:text-indigo-600 font-medium py-2"
+        <a href="/" class="text-gray-700 hover:text-indigo-600 font-medium py-2"
           >Home</a
         >
-        <a href="" class="text-gray-500 hover:text-indigo-600 font-medium py-2"
+        <a href="{% url 'user_account:profile' %}" class="text-gray-500 hover:text-indigo-600 font-medium py-2"
           >My Profile</a
         >
       </div>

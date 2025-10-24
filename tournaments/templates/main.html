@@ -248,27 +248,36 @@
           detailEl.href = "#";
         }
       }
+      
+      // --- THIS IS THE CORRECTED BLOCK ---
       const registerEl = cardClone.querySelector('[data-js="register-btn"]');
       if (registerEl) {
-        // attach tournament id for later use and a placeholder click handler
-        registerEl.dataset.tournamentId = tournament.id || '';
-        registerEl.addEventListener('click', (ev) => {
-          ev.preventDefault();
-          console.debug('Register clicked for tournament', registerEl.dataset.tournamentId);
-          // Default behavior: navigate to tournament detail page and append a register anchor
-          try {
-            const tid = registerEl.dataset.tournamentId;
-            if (detailEl && detailEl.href) {
-              // preserve absolute href
-              globalThis.location.href = detailEl.href + '#register';
-            } else if (tid) {
-              globalThis.location.href = `/tournaments/${tid}/#register`;
+        // If tournament is NOT active, remove the button.
+        // The button is already present in the template if the user is authenticated.
+        if (!tournament.is_active) {
+          registerEl.remove();
+        } else {
+          // Otherwise, attach tournament id and click handler
+          registerEl.dataset.tournamentId = tournament.id || '';
+          registerEl.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            console.debug('Register clicked for tournament', registerEl.dataset.tournamentId);
+            // Default behavior: navigate to tournament detail page and append a register anchor
+            try {
+              const tid = registerEl.dataset.tournamentId;
+              if (detailEl && detailEl.href) {
+                // preserve absolute href
+                globalThis.location.href = detailEl.href + '#register';
+              } else if (tid) {
+                globalThis.location.href = `/tournaments/${tid}/#register`;
+              }
+            } catch (error_) {
+              console.error('Navigation to registration failed', error_);
             }
-          } catch (error_) {
-            console.error('Navigation to registration failed', error_);
-          }
-        });
-      }
+          }); // <-- Closing parenthesis and brace for addEventListener
+        }
+      } // <-- Closing brace for if (registerEl)
+      // --- END OF CORRECTED BLOCK ---
 
       return cardClone;
     }
