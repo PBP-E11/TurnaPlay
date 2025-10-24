@@ -66,7 +66,7 @@ def admin_manage_users(request):
         'status_filter': status_filter,
     }
     
-    return render(request, 'user_account/admin/manage_users.html', context)
+    return render(request, 'admin/manage_users.html', context)
 
 @login_required
 @require_http_methods(["GET", "POST"])
@@ -81,13 +81,23 @@ def admin_create_organizer(request):
             user = form.save(commit=False)
             user.role = 'organizer'
             user.save()
+            
+            # Check if the request is AJAX using the 'X-Requested-With' header
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'message': 'Organizer account created successfully!'})
+            
             messages.success(request, f'Organizer account {user.username} created successfully!')
             return redirect('user_account:admin_manage_users')
+        
+        # If form is not valid, send error response (AJAX)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Form is invalid'})
+    
     else:
         form = CreateOrganizerForm()
     
     context = {'form': form}
-    return render(request, 'user_account/admin/create_organizer.html', context)
+    return render(request, 'admin/create_organizer.html', context)
 
 @login_required
 def admin_user_detail(request, user_id):
@@ -105,7 +115,7 @@ def admin_user_detail(request, user_id):
         'tournaments': tournaments,
     }
     
-    return render(request, 'user_account/admin/user_detail.html', context)
+    return render(request, 'admin/user_detail.html', context)
 
 @login_required
 @require_http_methods(["POST"])
@@ -202,7 +212,7 @@ def register_view(request):
 def complete_profile_view(request):
     """User registration - Step 2: Complete profile with avatar"""
     if request.method == 'POST':
-        profile_image = request.POST.get('profile_image', 'avatar1')
+        profile_image = request.POST.get('profile_image')
         
         user = request.user
         user.profile_image = profile_image

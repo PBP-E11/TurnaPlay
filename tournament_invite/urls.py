@@ -4,15 +4,15 @@ from . import views
 app_name = 'tournament_invite'
 
 urlpatterns = [
-    # page (list incoming/outgoing)
-    path('invites/', views.invite_list, name='invite_list'),
+    # pages
+    path('', views.invite_list, name='invite-list'),
+    path('create/', views.create_invite, name='create-invite'),
 
-    # actions
-    path('invites/create/', views.create_invite, name='create_invite'),
-    path('invites/<uuid:invite_id>/accept/', views.accept_invite, name='accept_invite'),
-    path('invites/<uuid:invite_id>/reject/', views.reject_invite, name='reject_invite'),
-    path('invites/<uuid:invite_id>/cancel/', views.cancel_invite, name='cancel_invite'),
+    # ajax poll (one-time toast)
+    path('check/', views.check_new_invite, name='check-new-invite'),
 
-    # ajax poll for one-time popup
-    path('invites/check/', views.check_new_invite, name='check_new_invite'),
+    # JSON API (AJAX) — invite_id dikirim via JSON body (bukan URL)
+    path('api/accept/', views.api_accept_invite, name='api-accept'),
+    path('api/reject/', views.api_reject_invite, name='api-reject'),
+    path('api/cancel/', views.api_cancel_invite, name='api-cancel'),
 ]

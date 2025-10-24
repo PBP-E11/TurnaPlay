@@ -1,27 +1,30 @@
-<div id="tp-toast-global" class="fixed bottom-6 right-6 hidden z-50">
-  <div class="bg-indigo-700 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3">
-    <span class="inline-flex w-2.5 h-2.5 rounded-full bg-white/80 animate-pulse"></span>
-    Kamu punya undangan baru!
-    <a href="{% url 'tournament_invite:invite_list' %}" class="underline font-medium">Buka</a>
-  </div>
+<div id="ti-toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded shadow">
+  You have new tournament invites. <a class="underline" href="{% url 'tournament_invite:invite-list' %}">View</a>
 </div>
+
 <script>
-  (function(){
-    const toast = document.getElementById('tp-toast-global');
-    if(!toast) return;
-    const key = 'tp_inv_toast_' + new Date().toISOString().slice(0,10);
-    async function poll(){
-      try{
-        const res = await fetch("{% url 'tournament_invite:check_new_invite' %}", {headers:{'X-Requested-With':'XMLHttpRequest'}});
-        if(!res.ok) return;
-        const d = await res.json();
-        if(d.pending > 0 && !localStorage.getItem(key)){
-          toast.classList.remove('hidden');
-          setTimeout(()=>toast.classList.add('hidden'), 6000);
-          localStorage.setItem(key,'1');
-        }
-      }catch(e){}
-    }
-    poll(); setInterval(poll, 45000);
-  })();
+(function(){
+  const KEY = "ti_last_seen_invite_created_at";
+
+  async function poll(){
+    try{
+      const res = await fetch("{% url 'tournament_invite:check-new-invite' %}", {credentials:"same-origin"});
+      if(!res.ok) return;
+      const j = await res.json();
+      const latest = j.latest_created_at; // ISO string
+      if(!latest) return;
+
+      const lastSeen = localStorage.getItem(KEY);
+      if(!lastSeen || new Date(latest) > new Date(lastSeen)){
+        const el = document.getElementById("ti-toast");
+        el.classList.remove("hidden");
+        localStorage.setItem(KEY, latest);
+        setTimeout(()=> el.classList.add("hidden"), 4000);
+      }
+    }catch(e){ /* ignore */ }
+  }
+
+  poll();
+  setInterval(poll, 30000);
+})();
 </script>

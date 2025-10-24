@@ -1,197 +1,256 @@
+from __future__ import annotations
+
+import json
+from datetime import datetime
+from typing import Optional
+
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseRedirect, HttpResponseForbidden
-from django.shortcuts import render, get_object_or_404, redirect
+from django.core.exceptions import ValidationError, PermissionDenied
+from django.db import IntegrityError, transaction
+from django.db.models import Max, Q, Count
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    JsonResponse,
+    HttpResponseBadRequest,
+)
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from .models import TournamentInvite
-from tournament_registration.models import TournamentRegistration, TeamMember
+
+# dependency ke app lain
+from user_account.models import UserAccount
 from game_account.models import GameAccount
+from tournament_registration.models import TournamentRegistration, TeamMember
 
-# ========= Helpers =========
 
-def _is_user_team_leader(user, team: TournamentRegistration) -> bool:
-    """
-    Cek apakah 'user' adalah leader dari 'team' tersebut.
-    Berdasar model TeamMember: is_leader=True dan GameAccount.user == user
-    """
-    return TeamMember.objects.filter(
-        team=team,
-        is_leader=True,
-        game_account__user=user,
-    ).exists()
+# ------------ Helper ------------
+def _is_leader(user: UserAccount, team: TournamentRegistration) -> bool:
+    return TeamMember.objects.filter(team=team, is_leader=True, game_account__user=user).exists()
 
-def _team_game(team: TournamentRegistration):
-    return team.tournament.tournament_format.game
 
-# ========= Pages =========
+def _team_size(team: TournamentRegistration) -> int:
+    return team.tournament.tournament_format.team_size
 
+
+def _recompute_team_status(team: TournamentRegistration) -> None:
+    """Opsional: set team status valid/invalid berdasarkan ukuran tim terkini."""
+    try:
+        size = _team_size(team)
+    except Exception:
+        return
+    member_count = TeamMember.objects.filter(team=team).count()
+    new_status = "valid" if member_count == size else "invalid"
+    if getattr(team, "status", None) != new_status:
+        team.status = new_status
+        team.save(update_fields=["status"])
+
+
+def _invite_queryset_for_user(user: UserAccount):
+    incoming = TournamentInvite.objects.select_related(
+        "user_account", "tournament_registration", "tournament_registration__tournament",
+        "tournament_registration__tournament__tournament_format",
+    ).filter(user_account=user)
+
+    # outgoing = undangan yg dikirim oleh tim di mana user adalah leader
+    leader_team_ids = TeamMember.objects.filter(
+        game_account__user=user, is_leader=True
+    ).values_list("team_id", flat=True)
+
+    outgoing = TournamentInvite.objects.select_related(
+        "user_account", "tournament_registration", "tournament_registration__tournament",
+        "tournament_registration__tournament__tournament_format",
+    ).filter(tournament_registration_id__in=leader_team_ids)
+
+    return incoming, outgoing
+
+
+# ------------ Pages ------------
 @login_required
-def invite_list(request):
-    # Incoming = undangan yang ditujukan ke user ini
-    incoming = TournamentInvite.objects.filter(
-        user_account=request.user
-    ).select_related('tournament_registration__tournament__tournament_format__game').order_by('-created_at')
+def invite_list(request: HttpRequest) -> HttpResponse:
+    """Halaman daftar undangan (incoming & outgoing), dengan filter sederhana."""
+    status = request.GET.get("status")
+    status_filter = Q()
+    if status in {"pending", "accepted", "rejected"}:
+        status_filter = Q(status=status)
 
-    # Outgoing = undangan yang dikirim dari tim yang dipimpin user ini
-    outgoing = TournamentInvite.objects.filter(
-        tournament_registration__members__is_leader=True,
-        tournament_registration__members__game_account__user=request.user
-    ).select_related('tournament_registration__tournament__tournament_format__game', 'user_account').order_by('-created_at').distinct()
-
-    # Kumpulan team yang user ini pimpin -> untuk form create invite
-    my_leading_teams = TournamentRegistration.objects.filter(
-        members__is_leader=True,
-        members__game_account__user=request.user
-    ).select_related('tournament__tournament_format__game').distinct()
+    incoming, outgoing = _invite_queryset_for_user(request.user)
+    incoming = incoming.filter(status_filter).order_by("-created_at")
+    outgoing = outgoing.filter(status_filter).order_by("-created_at")
 
     context = {
-        'incoming': incoming,
-        'outgoing': outgoing,
-        'my_leading_teams': my_leading_teams,
+        "incoming": incoming,
+        "outgoing": outgoing,
+        "status": status or "all",
     }
-    return render(request, 'tournament_invite/invite_list.html', context)
+    return render(request, "tournament_invite/invite_list.html", context)
 
-# ========= AJAX / Utilities =========
-
-@login_required
-def check_new_invite(request):
-    # Hitung pending incoming invites
-    pending = TournamentInvite.objects.filter(
-        user_account=request.user, status=TournamentInvite.Status.PENDING
-    ).count()
-    return JsonResponse({'pending': pending})
-
-# ========= Actions =========
 
 @login_required
-@transaction.atomic
-def create_invite(request):
-    """
-    Leader mengundang user lain ke tim (TournamentRegistration).
-    Input minimal (POST):
-      - team_id (UUID TournamentRegistration)
-      - user_id (UUID UserAccount) atau username
-    """
-    if request.method != 'POST':
-        return HttpResponseBadRequest('POST required')
+def create_invite(request: HttpRequest) -> HttpResponse:
+    """Buat undangan baru (leader only) – versi sederhana form POST."""
+    if request.method != "POST":
+        messages.error(request, "Invalid method.")
+        return redirect("tournament_invite:invite-list")
 
-    team_id = request.POST.get('team_id')
-    user_id = request.POST.get('user_id')
-    username = request.POST.get('username')
+    user_id = request.POST.get("user_id")
+    reg_id = request.POST.get("registration_id")
 
-    if not team_id or not (user_id or username):
-        return HttpResponseBadRequest('team_id and user_id/username are required')
+    if not user_id or not reg_id:
+        messages.error(request, "Missing parameters.")
+        return redirect("tournament_invite:invite-list")
 
-    team = get_object_or_404(TournamentRegistration, pk=team_id)
+    user_to_invite = get_object_or_404(UserAccount, pk=user_id)
+    team = get_object_or_404(TournamentRegistration, pk=reg_id)
 
-    # hanya leader tim yang boleh undang
-    if not _is_user_team_leader(request.user, team):
-        return HttpResponseForbidden('Only team leader can invite')
+    # permission: hanya leader tim
+    if not _is_leader(request.user, team):
+        raise PermissionDenied("Only team leader can invite.")
 
-    # resolve invited user
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-    if user_id:
-        invited_user = get_object_or_404(User, pk=user_id)
-    else:
-        invited_user = get_object_or_404(User, username=username)
+    # tidak boleh mengundang diri sendiri
+    if user_to_invite.id == request.user.id:
+        messages.error(request, "You cannot invite yourself.")
+        return redirect("tournament_invite:invite-list")
 
-    # larangan mengundang diri sendiri
-    if invited_user == request.user:
-        return HttpResponseBadRequest("You cannot invite yourself.")
-
-    # Cek sudah jadi member tim lain di turnamen yang sama?
-    tournament = team.tournament
-    already_joined = TeamMember.objects.filter(
-        game_account__user=invited_user,
-        team__tournament=tournament,
+    # tidak boleh undang user yang sudah tergabung di tim turnamen yang sama
+    same_tournament_member = TeamMember.objects.filter(
+        game_account__user=user_to_invite, team__tournament=team.tournament
     ).exists()
-    if already_joined:
-        return HttpResponseBadRequest("User already joined a team for this tournament.")
+    if same_tournament_member:
+        messages.error(request, "Target user already belongs to a team for this tournament.")
+        return redirect("tournament_invite:invite-list")
 
-    # Buat/temukan invite pending
-    inv, created = TournamentInvite.objects.get_or_create(
-        user_account=invited_user,
-        tournament_registration=team,
-        status=TournamentInvite.Status.PENDING,
+    try:
+        TournamentInvite.objects.create(
+            user_account=user_to_invite,
+            tournament_registration=team,
+            status="pending",
+        )
+        messages.success(request, "Invite sent.")
+    except IntegrityError:
+        messages.error(request, "There is already a pending invite for this user & team.")
+
+    return redirect("tournament_invite:invite-list")
+
+
+# ------------ Polling for toast ------------
+@login_required
+def check_new_invite(request: HttpRequest) -> JsonResponse:
+    """Kembalikan pending_count + latest_created_at agar client bisa one-time toast."""
+    latest = (
+        TournamentInvite.objects.filter(user_account=request.user, status="pending")
+        .aggregate(x=Max("created_at"))
+        .get("x")
     )
+    count_pending = TournamentInvite.objects.filter(
+        user_account=request.user, status="pending"
+    ).count()
 
-    return redirect('tournament_invite:invite_list')
+    data = {
+        "pending_count": count_pending,
+        "latest_created_at": latest.isoformat() if latest else None,
+    }
+    return JsonResponse(data)
+
+
+# ------------ JSON Actions (AJAX) ------------
+@login_required
+@transaction.atomic
+def api_accept_invite(request: HttpRequest) -> JsonResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest("Invalid method")
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return HttpResponseBadRequest("Bad JSON")
+
+    invite_id = payload.get("invite_id")
+    ga_id = payload.get("game_account_id")
+    invite = get_object_or_404(TournamentInvite, pk=invite_id, user_account=request.user)
+
+    if invite.status != "pending":
+        return JsonResponse({"ok": False, "error": "Invite already processed."}, status=400)
+
+    team = invite.tournament_registration
+
+    # kapasitas tim
+    size = _team_size(team)
+    current_members = TeamMember.objects.filter(team=team).count()
+    if current_members >= size:
+        return JsonResponse({"ok": False, "error": "Team is already full."}, status=400)
+
+    # ambil game account & validasi pemilik + game-nya cocok
+    ga = get_object_or_404(GameAccount, pk=ga_id, user=request.user, active=True)
+    expected_game_id = team.tournament.tournament_format.game_id
+    if str(ga.game_id) != str(expected_game_id):
+        return JsonResponse({"ok": False, "error": "Game account does not match tournament game."}, status=400)
+
+    # buat TeamMember menggunakan rule di tournament_registration
+    member = TeamMember(team=team, game_account=ga, is_leader=False)
+    try:
+        member.full_clean()
+        member.save()
+    except ValidationError as e:
+        return JsonResponse({"ok": False, "error": e.message_dict if hasattr(e, "message_dict") else e.messages}, status=400)
+
+    invite.status = "accepted"
+    invite.save(update_fields=["status"])
+
+    _recompute_team_status(team)
+
+    return JsonResponse({"ok": True})
+
 
 @login_required
 @transaction.atomic
-def accept_invite(request, invite_id):
-    """
-    Penerima menerima undangan.
-    Wajib memilih GameAccount milik dirinya yang sesuai dengan game turnamen.
-    - GET: render mini-modal (fragment) untuk pilih game account (jika tidak kirim id)
-    - POST: butuh 'game_account_id'
-    """
-    inv = get_object_or_404(
-        TournamentInvite,
-        pk=invite_id,
-        user_account=request.user,
-        status=TournamentInvite.Status.PENDING
-    )
+def api_reject_invite(request: HttpRequest) -> JsonResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest("Invalid method")
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return HttpResponseBadRequest("Bad JSON")
 
-    team = inv.tournament_registration
-    game = _team_game(team)
+    invite_id = payload.get("invite_id")
+    invite = get_object_or_404(TournamentInvite, pk=invite_id, user_account=request.user)
 
-    if request.method == 'GET' and not request.GET.get('game_account_id'):
-        # Kirim fragment modal
-        my_accounts = GameAccount.objects.filter(user=request.user, game=game, active=True)
-        return render(request, 'tournament_invite/_choose_game_account.html', {
-            'invite': inv,
-            'game': game,
-            'accounts': my_accounts,
-        })
+    if invite.status != "pending":
+        return JsonResponse({"ok": False, "error": "Invite already processed."}, status=400)
 
-    # Ambil game_account_id dari POST/GET (modal submit)
-    game_account_id = request.POST.get('game_account_id') or request.GET.get('game_account_id')
-    if not game_account_id:
-        return HttpResponseBadRequest('game_account_id is required')
+    invite.status = "rejected"
+    invite.save(update_fields=["status"])
+    return JsonResponse({"ok": True})
 
-    ga = get_object_or_404(GameAccount, pk=game_account_id, user=request.user, game=game, active=True)
-
-    # Tambah ke anggota tim (is_leader=False)
-    TeamMember.objects.create(
-        game_account=ga,
-        team=team,
-        is_leader=False,
-    )
-
-    inv.status = TournamentInvite.Status.ACCEPTED
-    inv.save()
-
-    return HttpResponseRedirect(reverse('tournament_invite:invite_list'))
 
 @login_required
 @transaction.atomic
-def reject_invite(request, invite_id):
-    inv = get_object_or_404(
-        TournamentInvite,
-        pk=invite_id,
-        user_account=request.user,
-        status=TournamentInvite.Status.PENDING
-    )
-    inv.status = TournamentInvite.Status.REJECTED
-    inv.save()
-    return HttpResponseRedirect(reverse('tournament_invite:invite_list'))
+def api_cancel_invite(request: HttpRequest) -> JsonResponse:
+    if request.method != "POST":
+        return HttpResponseBadRequest("Invalid method")
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return HttpResponseBadRequest("Bad JSON")
 
-@login_required
-@transaction.atomic
-def cancel_invite(request, invite_id):
-    # Leader membatalkan undangan dari timnya.
-    inv = get_object_or_404(TournamentInvite, pk=invite_id)
+    invite_id = payload.get("invite_id")
+    invite = get_object_or_404(TournamentInvite, pk=invite_id)
+    team = invite.tournament_registration
 
-    team = inv.tournament_registration
-    if not _is_user_team_leader(request.user, team):
-        return HttpResponseForbidden('Only team leader can cancel')
+    # hanya leader yang dapat cancel
+    if not _is_leader(request.user, team):
+        raise PermissionDenied("Only team leader can cancel.")
 
-    # Boleh batalkan apapun yang masih pending
-    if inv.status != TournamentInvite.Status.PENDING:
-        return HttpResponseBadRequest('Only pending invites can be canceled')
+    if invite.status == "pending":
+        invite.delete()
+        return JsonResponse({"ok": True})
+    
+    if invite.status == "accepted":
+        TeamMember.objects.filter(team=team, game_account__user=invite.user_account).delete()
+        invite.status = "rejected"
+        invite.save(update_fields=["status"])
+        _recompute_team_status(team)
+        return JsonResponse({"ok": True})
 
-    inv.delete()
-    return HttpResponseRedirect(reverse('tournament_invite:invite_list'))
+    return JsonResponse({"ok": False, "error": "Nothing to cancel."}, status=400)
