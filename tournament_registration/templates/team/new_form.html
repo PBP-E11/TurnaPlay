@@ -21,18 +21,15 @@
       <section class="mb-8 flex-1">
         <h3 class="mb-2 font-medium">Leader</h3>
         <div class="border border-gray-500 rounded-lg p-4 space-y-4">
-          {{ leader_form.username }}
+          {{ user.username }}
           {{ leader_form.game_account }}
         </div>
       </section>
     </div>
 
-    <div class="flex justify-between flex-wrap gap-4">
-      <button type="button" class="w-64 h-16 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-2xl">
-        Bubarkan Tim
-      </button>
+    <div class="flex justify-end flex-wrap gap-4">
       <button type="submit" class="w-64 h-16 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-2xl">
-        Perbarui Data Tim
+        Buat Tim
       </button>
     </div>
   </form>

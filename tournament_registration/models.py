@@ -1,6 +1,7 @@
 import uuid
 from tournaments.models import Tournament
 from game_account.models import GameAccount
+from user_account.models import UserAccount
 from django.db import models
 from django.core.exceptions import ValidationError
 
