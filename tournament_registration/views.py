@@ -74,6 +74,7 @@ def edit_team_form(request: HttpRequest, team_id: uuid.UUID) -> HttpResponse:
     team_form = TeamNameForm(request.POST or None, instance=team)
     leader_form = MemberForm(
         request.POST or None,
+        user=leader.game_account.user,
         team=team,
         instance=leader,
     )
@@ -91,8 +92,9 @@ def edit_team_form(request: HttpRequest, team_id: uuid.UUID) -> HttpResponse:
     context = {
         "team": team,
         "team_form": team_form,
-        "leader_form": leader_form,   # display only — not processed on POST here
-        "members": members_qs,        # ordered members to render in template
+        "leader_form": leader_form,
+        "members": members_qs,
+        "tournament": team.tournament,
         "is_leader": _is_user_team_leader(request.user, team),
     }
     return render(request, "team/edit_form.html", context)

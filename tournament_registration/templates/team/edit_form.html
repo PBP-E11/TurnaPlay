@@ -60,16 +60,13 @@
       {% endif %}
     </section>
 
-    <div class="flex justify-between flex-wrap gap-4">
+    <div class="flex justify-between items-center flex-wrap gap-4">
       <button formaction="{% url 'team:leave_team' team.id %}" class="w-64 h-16 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-2xl">
         {% if is_leader %}
         Bubarkan Tim
         {% else %}
         Keluar Dari Tim
         {% endif %}
-      </button>
-      <button type="submit" formaction="{% url 'team:finalize_team' team.id %}" class="w-64 h-16 bg-indigo-800 hover:bg-gray-700 text-white font-semibold rounded-2xl">
-        Finalisasi Data Tim
       </button>
       <button type="submit" class="w-64 h-16 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-2xl">
         Perbarui Data Tim
