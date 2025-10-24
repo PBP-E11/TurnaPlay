@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Invites · TurnaPlay{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-8">
+  <!-- Heading -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight text-gray-900">Undangan Turnamen</h1>
+      <p class="text-gray-500 mt-1">Kelola undangan masuk dan undangan yang kamu kirim.</p>
+    </div>
+    <div class="hidden md:flex items-center gap-2">
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-50 text-indigo-700">
+        Pending: {{ incoming|length }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="inline-flex rounded-xl bg-gray-100 p-1 mb-6">
+    <button id="tab-incoming" class="px-4 py-2 text-sm md:text-base font-medium rounded-lg bg-white text-gray-900 shadow">
+      Incoming
+    </button>
+    <button id="tab-outgoing" class="px-4 py-2 text-sm md:text-base font-medium rounded-lg text-gray-600">
+      Outgoing
+    </button>
+  </div>
+
+  <!-- Incoming -->
+  <section id="incoming" class="space-y-4">
+    {% if incoming %}
+      {% for inv in incoming %}
+      <article class="bg-white rounded-2xl shadow-md ring-1 ring-gray-100 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex-1">
+          <div class="flex items-center gap-3 flex-wrap">
+            <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 font-bold">
+              {{ inv.tournament_registration.tournament.tournament_format.game.name|first|upper }}
+            </span>
+            <h3 class="text-lg font-semibold text-gray-900">
+              {{ inv.tournament_registration.team_name }}
+              <span class="text-gray-400 font-normal">·</span>
+              <span class="text-gray-700">{{ inv.tournament_registration.tournament.tournament_name }}</span>
+            </h3>
+          </div>
+          <div class="mt-2 flex items-center gap-2">
+            {% if inv.status == 'pending' %}
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Pending</span>
+            {% elif inv.status == 'accepted' %}
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Accepted</span>
+            {% else %}
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700">Rejected</span>
+            {% endif %}
+            <span class="text-xs text-gray-400">· dibuat {{ inv.created_at|date:"d M Y H:i" }}</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          {% if inv.status == 'pending' %}
+            <!-- Accept opens mini modal via fetch GET -->
+            <a href="{% url 'tournament_invite:accept_invite' inv.id %}"
+               class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition">
+              Terima
+            </a>
+            <form method="post" action="{% url 'tournament_invite:reject_invite' inv.id %}">
+              {% csrf_token %}
+              <button class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition">
+                Tolak
+              </button>
+            </form>
+          {% else %}
+            <span class="text-sm text-gray-500">Tidak ada aksi</span>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    {% else %}
+      <div class="bg-white rounded-2xl shadow-md ring-1 ring-gray-100 p-6 text-gray-500">
+        Belum ada undangan masuk.
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Outgoing -->
+  <section id="outgoing" class="space-y-4 hidden">
+    {% if outgoing %}
+      {% for inv in outgoing %}
+      <article class="bg-white rounded-2xl shadow-md ring-1 ring-gray-100 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex-1">
+          <div class="flex items-center gap-3 flex-wrap">
+            <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 font-bold">
+              {{ inv.tournament_registration.tournament.tournament_format.game.name|first|upper }}
+            </span>
+            <h3 class="text-lg font-semibold text-gray-900">
+              @{{ inv.user_account.username }}
+              <span class="text-gray-400 font-normal">·</span>
+              <span class="text-gray-700">{{ inv.tournament_registration.team_name }}</span>
+            </h3>
+          </div>
+          <div class="mt-2 flex items-center gap-2">
+            {% if inv.status == 'pending' %}
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Pending</span>
+            {% elif inv.status == 'accepted' %}
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Accepted</span>
+            {% else %}
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700">Rejected</span>
+            {% endif %}
+            <span class="text-xs text-gray-400">· dikirim {{ inv.created_at|date:"d M Y H:i" }}</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          {% if inv.status == 'pending' %}
+            <form method="post" action="{% url 'tournament_invite:cancel_invite' inv.id %}">
+              {% csrf_token %}
+              <button class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-gray-900 text-white hover:bg-black transition">
+                Batalkan
+              </button>
+            </form>
+          {% else %}
+            <span class="text-sm text-gray-500">Tidak ada aksi</span>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    {% else %}
+      <div class="bg-white rounded-2xl shadow-md ring-1 ring-gray-100 p-6 text-gray-500">
+        Belum ada undangan yang kamu kirim.
+      </div>
+    {% endif %}
+
+    <!-- Quick Create (Leader only) -->
+    <div class="bg-white rounded-2xl shadow-md ring-1 ring-gray-100 p-6 mt-6">
+      <h4 class="text-base font-semibold text-gray-900 mb-3">Kirim Undangan (Leader)</h4>
+      <form method="post" action="{% url 'tournament_invite:create_invite' %}" class="grid md:grid-cols-3 gap-4">
+        {% csrf_token %}
+        <label class="text-sm text-gray-600">
+          <span class="block mb-1">Pilih Tim</span>
+          <select name="team_id" class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+            {% for t in my_leading_teams %}
+              <option value="{{ t.id }}">{{ t.team_name }} — {{ t.tournament.tournament_name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="text-sm text-gray-600">
+          <span class="block mb-1">Username yang Diundang</span>
+          <input name="username" class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" placeholder="contoh: rekkaFPS" />
+        </label>
+        <div class="flex items-end">
+          <button class="w-full px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition">Kirim Undangan</button>
+        </div>
+      </form>
+      <p class="text-xs text-gray-500 mt-2">Atau kirim field <code>user_id</code> jika sudah tahu UUID user.</p>
+    </div>
+  </section>
+</div>
+
+<!-- Toast -->
+<div id="tp-toast" class="fixed bottom-6 right-6 hidden">
+  <div class="bg-indigo-700 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3">
+    <span class="inline-flex w-2.5 h-2.5 rounded-full bg-white/80 animate-pulse"></span>
+    Kamu punya undangan baru!
+    <a href="{% url 'tournament_invite:invite_list' %}" class="underline font-medium">Buka</a>
+  </div>
+</div>
+
+<!-- Modal container -->
+<div id="tp-modal" class="fixed inset-0 bg-black/50 items-center justify-center hidden">
+  <div id="tp-modal-body" class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4"></div>
+</div>
+
+<script>
+  // Tabs UI
+  const tIncoming = document.getElementById('tab-incoming');
+  const tOutgoing = document.getElementById('tab-outgoing');
+  const incoming = document.getElementById('incoming');
+  const outgoing = document.getElementById('outgoing');
+
+  function activate(tab) {
+    if (tab === 'incoming') {
+      incoming.classList.remove('hidden');
+      outgoing.classList.add('hidden');
+      tIncoming.classList.add('bg-white','text-gray-900','shadow');
+      tOutgoing.classList.remove('bg-white','text-gray-900','shadow');
+      tOutgoing.classList.add('text-gray-600');
+    } else {
+      outgoing.classList.remove('hidden');
+      incoming.classList.add('hidden');
+      tOutgoing.classList.add('bg-white','text-gray-900','shadow');
+      tIncoming.classList.remove('bg-white','text-gray-900','shadow');
+      tIncoming.classList.add('text-gray-600');
+    }
+  }
+  tIncoming.onclick = ()=>activate('incoming');
+  tOutgoing.onclick = ()=>activate('outgoing');
+
+  // Polling one-time toast (daily)
+  const toast = document.getElementById('tp-toast');
+  const todayKey = 'tp_inv_toast_' + new Date().toISOString().slice(0,10);
+  async function pollInvites() {
+    try {
+      const res = await fetch("{% url 'tournament_invite:check_new_invite' %}", {headers: {'X-Requested-With':'XMLHttpRequest'}});
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.pending > 0 && !localStorage.getItem(todayKey)) {
+        toast.classList.remove('hidden');
+        setTimeout(()=>toast.classList.add('hidden'), 6000);
+        localStorage.setItem(todayKey,'1');
+      }
+    } catch(e){}
+  }
+  pollInvites();
+  setInterval(pollInvites, 45000);
+
+  // Modal GET fragment for Accept
+  const modal = document.getElementById('tp-modal');
+  const modalBody = document.getElementById('tp-modal-body');
+  document.querySelectorAll('a[href*="/invites/"][href$="/accept/"]').forEach(a=>{
+    a.addEventListener('click', async (e)=>{
+      e.preventDefault();
+      const url = e.currentTarget.getAttribute('href');
+      const res = await fetch(url, {headers:{'X-Requested-With':'XMLHttpRequest'}});
+      const html = await res.text();
+      modalBody.innerHTML = html;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    });
+  });
+  modal.addEventListener('click', (e)=>{
+    if(e.target===modal){
+      modal.classList.add('hidden'); modal.classList.remove('flex'); modalBody.innerHTML='';
+    }
+  });
+</script>
+{% endblock %}

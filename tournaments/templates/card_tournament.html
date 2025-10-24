@@ -1,0 +1,24 @@
+{% load static %}
+{% static 'image/BannerValo.png' as default_banner %}
+<article class="bg-slate-800 rounded-lg overflow-hidden shadow-md transform hover:-translate-y-1 transition">
+  <img
+    data-js="banner"
+    src="{{ tournament.banner|default:default_banner }}"
+    alt="{{ tournament.tournament_name }}"
+    class="w-full h-44 object-cover"
+  />
+  <div class="p-4">
+    <h3 data-js="name" class="text-lg font-semibold text-white">
+      {{ tournament.tournament_name }}
+    </h3>
+    <p data-js="date" class="text-sm text-rose-400 font-bold mt-2">
+      {{ tournament.tournament_date }}
+    </p>
+    <a
+      data-js="detail-url"
+      href=""
+      class="inline-block mt-4 text-sm bg-transparent border border-slate-400 text-slate-200 px-3 py-1.5 rounded-full font-semibold hover:bg-slate-200 hover:text-slate-900 transition"
+      >Detail</a
+    >
+  </div>
+</article>

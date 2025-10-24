@@ -1,40 +1,65 @@
-<footer class="bg-indigo-700 text-white py-6">
-  <div class="container mx-auto grid grid-cols-3 gap-4 px-6">
+{% load static %}
+<footer class="bg-[#494598] text-white relative">
+  <div class="max-w-7xl mx-auto relative min-h-[120px] px-6">
     <!-- Left -->
-    <div>
-      <h3 class="font-bold text-lg">🏆 TurnaPlay</h3>
-      <p class="text-sm mt-2">
-        Platform informasi turnamen e-sport terkini.  
-        Temukan jadwal, hasil, dan berita komunitas gaming dari berbagai penjuru arena.
+    <div class="absolute left-6 top-1/2 -translate-y-1/4 w-72">
+      <div class="flex items-center mb-2">
+        <img
+          src="{% static 'image/TrophyFooterLogo.svg' %}"
+          alt="Trophy"
+          class="h-6 md:h-7 w-auto"
+        />
+        <h3 class="ml-3 font-['Krona_One'] text-lg leading-none">TurnaPlay</h3>
+      </div>
+      <p class="font-['Montserrat'] text-xs text-gray-100 leading-relaxed">
+        Platform informasi turnamen e-sport terkini. Temukan jadwal, hasil, dan
+        berita komunitas gaming dari berbagai penjuru arena.
       </p>
     </div>
 
     <!-- Middle -->
-    <div>
-      <h4 class="font-semibold">Navigasi</h4>
-      <ul class="text-sm space-y-1 mt-2">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Leaderboard</a></li>
-        <li><a href="#">Profile</a></li>
-        <li><a href="#">Login / Register</a></li>
-        <li><a href="#">Kontak</a></li>
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/4 text-center w-52 font-['Montserrat']">
+      <h4 class="font-semibold mb-2">Navigasi</h4>
+      <ul class="text-xs space-y-1">
+        <li><a href="#" class="hover:text-amber-300">Home</a></li>
+        <li><a href="#" class="hover:text-amber-300">Profile</a></li>
+        <li><a href="#" class="hover:text-amber-300">Kontak</a></li>
       </ul>
     </div>
 
     <!-- Right -->
-    <div>
-      <h4 class="font-semibold">Social Media & Kontak</h4>
-      <ul class="text-sm space-y-1 mt-2">
-        <li>📸 <a href="https://instagram.com/turnaplay" target="_blank">@turnaplay</a></li>
-        <li>📘 <a href="https://facebook.com/turnaplayid" target="_blank">@turnaplayid</a></li>
-        <li>🐦 <a href="https://x.com/turnaplay" target="_blank">@turnaplay</a></li>
+    <div class="absolute right-6 top-1/2 -translate-y-1/4 w-64 font-['Montserrat']">
+      <h4 class="font-semibold mb-2">Kontak Developers</h4>
+      <ul class="text-xs space-y-1">
+        <li class="flex items-center gap-2">
+          <img src="{% static 'image/InstaLogo.png' %}" alt="Instagram" class="w-5 h-5" />
+          <a href="https://instagram.com/turnaplay" target="_blank">@turnaplay</a>
+        </li>
+        <li class="flex items-center gap-2">
+          <img src="{% static 'image/FacebookLogo.png' %}" alt="Facebook" class="w-5 h-5" />
+          <a href="https://facebook.com/turnaplayid" target="_blank">@turnaplayid</a>
+        </li>
+        <li class="flex items-center gap-2">
+          <img src="{% static 'image/XLogo.png' %}" alt="X" class="w-4 h-4" />
+          <a href="https://x.com/turnaplay" target="_blank">@turnaplay</a>
+        </li>
       </ul>
     </div>
   </div>
 
   <!-- Bottom line -->
-  <div class="bg-indigo-800 text-center text-sm py-3 mt-6">
-    <p>Sumber Data: <a href="https://instagram.com/infoTournament" target="_blank" class="underline hover:text-indigo-300">@infoTournament</a></p>
-    <p class="mt-1">© 2025 EsportArena – All rights reserved.</p>
+  <div class="bg-[#302D74] text-center text-xs py-2 mt-10">
+    <p class="font-['Montserrat'] font-semibold">
+      Sumber Data:
+      <a
+        href="https://instagram.com/infoTournament"
+        target="_blank"
+        class="underline hover:text-amber-300"
+        >@infoTournament</a
+      >
+    </p>
+    <p class="mt-1 font-['Montserrat'] font-bold">
+      © 2025 TurnaPlay – All rights reserved.
+    </p>
   </div>
 </footer>

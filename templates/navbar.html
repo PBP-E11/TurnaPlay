@@ -1,43 +1,181 @@
-<header class="bg-indigo-700 text-white">
-  <div class="container mx-auto flex justify-between items-center py-4 px-6">
-    <!-- Logo / Brand -->
-    <h1 class="font-krona text-blacktext-xl font-bold">🏆 TurnaPlay</h1>
+{% load static %}
 
-    <!-- Navigation Links -->
-    <nav class="hidden md:flex space-x-6 text-sm">
-      <a href="#" class="hover:text-indigo-200">Home</a>
-      <a href="#" class="hover:text-indigo-200">Leaderboard</a>
-      <a href="#" class="hover:text-indigo-200">Profile</a>
-      <a href="#" class="hover:text-indigo-200">Login / Register</a>
-    </nav>
+<!-- Navbar Component -->
+<nav class="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <!-- Logo -->
+      <div class="text-[#494598] flex items-center">
+        <a href="" class="flex items-center space-x-2">
+          <img
+            src="{% static 'image/TrophyNavbarLogo.svg' %}"
+            alt="Trophy"
+            class="h-6 md:h-7 w-auto"
+          />
+          <span class="font-['Krona_One'] text-lg font-bold text-current"
+            >TurnaPlay</span
+          >
+        </a>
+      </div>
 
-    <!-- Mobile Menu Button -->
-    <button id="menu-btn" class="md:hidden focus:outline-none">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-           viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round"
-              stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
-    </button>
+      <!-- Navigation Links -->
+      <div
+        class="hidden md:flex font-['Montserrat'] font-semibold items-center space-x-7"
+      >
+        <a
+          href=""
+          class="text-gray-700 text-sm hover:text-indigo-600 font-medium transition-colors"
+        >
+          Home
+        </a>
+        <a
+          href=""
+          class="text-gray-500 text-sm hover:text-indigo-600 font-medium transition-colors"
+        >
+          My Profile
+        </a>
+      </div>
+
+      <!-- User Profile Button -->
+      <div class="flex items-center">
+        {% if user.is_authenticated %}
+        <div class="relative">
+          <button
+            id="user-menu-button"
+            class="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            <div
+              class="w-8 h-8 rounded-full bg-white flex items-center justify-center"
+            >
+              {% if user.profile_picture %}
+              <img
+                src="{{ user.profile_picture.url }}"
+                alt="{{ user.username }}"
+                class="w-8 h-8 rounded-full object-cover"
+              />
+              {% else %}
+              <span class="text-indigo-600 font-semibold text-sm"
+                >{{ user.username|slice:":1"|upper }}</span
+              >
+              {% endif %}
+            </div>
+            <span class="font-medium">{{ user.username|default:"John" }}</span>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+
+          <!-- Dropdown Menu (Hidden by default) -->
+          <div
+            id="user-dropdown"
+            class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50"
+          >
+            <a href="" class="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >Profile</a
+            >
+            <a href="" class="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >Settings</a
+            >
+            <hr class="my-1" />
+            <a href="" class="block px-4 py-2 text-red-600 hover:bg-gray-100"
+              >Logout</a
+            >
+          </div>
+        </div>
+        {% else %}
+        <div
+          class="font-['Montserrat'] font-semibold flex items-center space-x-4 pl-4"
+        >
+          <a
+            href=""
+            class="text-[#494598] border border-indigo-600 bg-transparent text-xs px-6 py-2 rounded-lg hover:bg-indigo-50 transition-colors font-medium"
+          >
+            Register
+          </a>
+          <a
+            href=""
+            class="bg-[#494598] text-xs text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+          >
+            Login
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <div class="md:hidden">
+        <button
+          id="mobile-menu-button"
+          class="text-gray-700 hover:text-indigo-600"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Menu (Hidden by default) -->
+    <div id="mobile-menu" class="hidden md:hidden pb-4">
+      <div class="flex flex-col space-y-2">
+        <a href="" class="text-gray-700 hover:text-indigo-600 font-medium py-2"
+          >Home</a
+        >
+        <a href="" class="text-gray-500 hover:text-indigo-600 font-medium py-2"
+          >My Profile</a
+        >
+      </div>
+    </div>
   </div>
+</nav>
 
-  <!-- Mobile Dropdown -->
-  <div id="mobile-menu" class="hidden md:hidden bg-indigo-800">
-    <nav class="flex flex-col space-y-2 px-6 py-4 text-sm">
-      <a href="#" class="hover:text-indigo-300">Home</a>
-      <a href="#" class="hover:text-indigo-300">Leaderboard</a>
-      <a href="#" class="hover:text-indigo-300">Profile</a>
-      <a href="#" class="hover:text-indigo-300">Login / Register</a>
-    </nav>
-  </div>
-</header>
-
+<!-- JavaScript for Dropdown and Mobile Menu -->
 <script>
-  // Simple mobile toggle
-  const menuBtn = document.getElementById('menu-btn');
-  const mobileMenu = document.getElementById('mobile-menu');
+  // User dropdown toggle
+  const userMenuButton = document.getElementById("user-menu-button");
+  const userDropdown = document.getElementById("user-dropdown");
 
-  menuBtn.addEventListener('click', () => {
-    mobileMenu.classList.toggle('hidden');
+  if (userMenuButton) {
+    userMenuButton.addEventListener("click", function () {
+      userDropdown.classList.toggle("hidden");
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", function (event) {
+      if (
+        !userMenuButton.contains(event.target) &&
+        !userDropdown.contains(event.target)
+      ) {
+        userDropdown.classList.add("hidden");
+      }
+    });
+  }
+
+  // Mobile menu toggle
+  const mobileMenuButton = document.getElementById("mobile-menu-button");
+  const mobileMenu = document.getElementById("mobile-menu");
+
+  mobileMenuButton.addEventListener("click", function () {
+    mobileMenu.classList.toggle("hidden");
   });
 </script>

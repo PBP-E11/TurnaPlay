@@ -8,8 +8,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{% static 'css/global.css' %}"/>
     <link href="https://fonts.googleapis.com/css2?family=Krona+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Krona+One&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   </head>
-  <body class="font-['Krona_One']">
+  <body>
+    <main class="pt-16 font-['Krona_One']"> 
     {% block content %} {% endblock content %}
+    {% include "tournament_invite/_toast_poll.html" %}
   </body>
 </html>

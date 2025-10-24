@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Register - TurnaPlay</title>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex overflow-hidden">
+    <div class="flex w-full max-w-[1400px] mx-auto rounded-none overflow-hidden bg-white gap-10">
+        <!-- Left Section - Register Form -->
+        <div class="flex-1 p-12 lg:p-16 flex flex-col justify-center max-w-[600px]">
+            <div class="mb-10">
+                <h1 class="text-[48px] font-bold text-gray-900 mb-2 leading-tight">Register</h1>
+                <p class="text-gray-600 text-base">Buat akun baru untuk mengikuti turnamen</p>
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="bg-red-50 text-red-800 p-3 rounded-lg mb-5 text-sm">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-5">
+                    <label for="id_username" class="block text-gray-900 font-semibold mb-3 text-base">Username</label>
+                    <input type="text" name="username" id="id_username" 
+                           class="w-full px-4 py-3.5 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20"
+                           placeholder="Username" required>
+                    {% if form.username.errors %}
+                    <div class="text-red-600 text-xs mt-1">{{ form.username.errors.0 }}</div>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1.5">Username untuk login dan mention</p>
+                </div>
+
+                <div class="mb-5">
+                    <label for="id_email" class="block text-gray-900 font-semibold mb-3 text-base">Email</label>
+                    <input type="email" name="email" id="id_email" 
+                           class="w-full px-4 py-3.5 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20"
+                           placeholder="Email" required>
+                    {% if form.email.errors %}
+                    <div class="text-red-600 text-xs mt-1">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-5">
+                    <label for="id_display_name" class="block text-gray-900 font-semibold mb-3 text-base">Display Name</label>
+                    <input type="text" name="display_name" id="id_display_name" 
+                           class="w-full px-4 py-3.5 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20"
+                           placeholder="Display Name" required>
+                    {% if form.display_name.errors %}
+                    <div class="text-red-600 text-xs mt-1">{{ form.display_name.errors.0 }}</div>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1.5">Nama yang akan ditampilkan ke publik</p>
+                </div>
+
+                <div class="mb-5">
+                    <label for="id_password" class="block text-gray-900 font-semibold mb-3 text-base">Password</label>
+                    <div class="relative">
+                        <input type="password" name="password" id="id_password" 
+                               class="w-full px-4 py-3.5 pr-12 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20"
+                               placeholder="••••••••••••" required>
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600" onclick="togglePassword('id_password', 'eye-icon-1')">
+                            <svg id="eye-icon-1" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </span>
+                    </div>
+                    {% if form.password.errors %}
+                    <div class="text-red-600 text-xs mt-1">{{ form.password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-6">
+                    <label for="id_password_confirm" class="block text-gray-900 font-semibold mb-3 text-base">Confirm Password</label>
+                    <div class="relative">
+                        <input type="password" name="password_confirm" id="id_password_confirm" 
+                               class="w-full px-4 py-3.5 pr-12 border border-gray-300 rounded-xl text-sm transition-all focus:outline-none focus:border-[#494598] focus:ring-2 focus:ring-[#494598]/20"
+                               placeholder="••••••••••••" required>
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600" onclick="togglePassword('id_password_confirm', 'eye-icon-2')">
+                            <svg id="eye-icon-2" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </span>
+                    </div>
+                    {% if form.password_confirm.errors %}
+                    <div class="text-red-600 text-xs mt-1">{{ form.password_confirm.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="w-full bg-[#494598] text-white py-4 rounded-xl font-semibold text-base transition-all hover:bg-[#3d3770] hover:shadow-lg">
+                    Continue
+                </button>
+
+                <p class="text-center mt-6 text-gray-700 text-sm">
+                    Sudah punya akun? <a href="{% url 'user_account:login' %}" class="text-[#494598] font-semibold hover:underline">Login</a>
+                </p>
+            </form>
+        </div>
+
+        <!-- Right Section - Hero -->
+        <div class="flex-1 bg-[#494598] text-white rounded-2xl mt-5 mb-5 p-10 lg:p-10 flex flex-col justify-start items-start relative overflow-hidden hidden lg:flex">
+            <!-- Decorative Shapes -->
+            <div class="absolute top-8 right-8 w-16 h-52 bg-white rounded-2xl"></div>
+            <div class="absolute top-8 right-28 w-16 h-32 bg-white rounded-2xl"></div>
+            <!-- Hero Text -->
+            <div class="relative z-10 max-w-xl">
+                <h2 class="text-[40px] font-bold mb-6 leading-tight mr-28">Bergabung dengan Komunitas Gamers</h2>
+                <p class="text-base opacity-90 leading-relaxed">Daftar sekarang dan ikuti berbagai turnamen esports dari Mobile Legends, Valorant, PUBG dan game favorit lainnya.</p>
+            </div>
+            <!-- Character Image -->
+            <div class="absolute bottom-0 right-0 w-[1000px] h-[800px] transform translate-y-12 translate-x-12">
+                <img id="character-image" src="" alt="Game Character" class="w-full h-full object-contain object-bottom absolute bottom-0" style="display: none;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword(inputId, iconId) {
+    const passwordInput = document.getElementById(inputId);
+    const eyeIcon = document.getElementById(iconId);
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.innerHTML = '<path d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"/><path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z"/>';
+    } else {
+        passwordInput.type = 'password';
+        eyeIcon.innerHTML = '<path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>';
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const characterImg = document.getElementById('character-image');
+    characterImg.src = "{% static 'images/mobile-legends-character.png' %}";
+    characterImg.style.display = 'block';
+});
+</script>
+
+<style>
+@media (max-width: 1024px) {
+    .flex.w-full.max-w-\[1400px\] {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
