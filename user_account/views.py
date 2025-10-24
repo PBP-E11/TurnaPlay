@@ -132,7 +132,6 @@ def admin_deactivate_user(request, user_id):
     })
 
 # ==================== AUTHENTICATION ====================
-
 def login_view(request):
     """User login"""
     if request.user.is_authenticated:
