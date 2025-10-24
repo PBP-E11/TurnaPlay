@@ -1,5 +1,5 @@
 import uuid
-from django.http import HttpRequest, Http404, HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.http import HttpRequest, Http404, HttpResponse, HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
@@ -99,6 +99,66 @@ def edit_team_form(request: HttpRequest, team_id: uuid.UUID) -> HttpResponse:
     }
     return render(request, "team/edit_form.html", context)
 
+@require_http_methods(["GET"])
+def list_members(request: HttpRequest, team_id: uuid.UUID) -> JsonResponse:
+    try:
+        team = TournamentRegistration.objects.get(pk=team_id)
+        if not request.user.is_authenticated:
+            return JsonResponse({'detail': 'Not logged in'}, status=403)
+        if not _is_user_in_team(request.user, team):
+            return JsonResponse({'detail': 'Not part of team'}, status=403)
+        data = [{
+            'game_account_id': member.game_account.id,
+            'username': member.game_account.user.username,
+            'ingame_name': member.game_account.ingame_name,
+        } for member in team.members.all()]
+        return JsonResponse(data, safe=False)
+    except TournamentRegistration.DoesNotExist:
+        return JsonResponse({'detail': 'Not found'}, status=404)
+
+@require_http_methods(["POST"])
+def leave_team(request: HttpRequest, team_id: uuid.UUID) -> JsonResponse:
+    try:
+        team = TournamentRegistration.objects.get(pk=team_id)
+        if not request.user.is_authenticated:
+            return JsonResponse({'detail': 'Not logged in'}, status=403)
+        if not _is_user_in_team(request.user, team):
+            return JsonResponse({'detail': 'Not part of team'}, status=403)
+
+        if _is_user_team_leader(request.user, team):
+            team.delete()
+        else:
+            team.members.filter(game_account__user=request.user).delete()
+
+        return JsonResponse({'detail': 'Ok'}, status=200)
+    except TournamentRegistration.DoesNotExist:
+        return JsonResponse({'detail': 'Not found'}, status=404)
+
+@require_http_methods(["POST"])
+def kick_member(request: HttpRequest, team_id: uuid.UUID):
+    try:
+        team = TournamentRegistration.objects.get(pk=team_id)
+        if not request.user.is_authenticated:
+            return JsonResponse({'detail': 'Not logged in'}, status=403)
+        if not _is_user_in_team(request.user, team):
+            return JsonResponse({'detail': 'Not part of team'}, status=403)
+
+        if not _is_user_team_leader(request.user, team):
+            return JsonResponse({'detail': 'Only leader can kick members'}, status=403)
+
+        member_id = request.POST.get("member_id")
+        if not member_id:
+            return JsonResponse({'detail': 'Missing member_id'}, status=400)
+
+        deleted, _ = team.members.filter(game_account__id=member_id).delete()
+        if not deleted:
+            return JsonResponse({'detail': 'Member not found'}, status=404)
+
+        return JsonResponse({'detail': 'Ok'}, status=200)
+
+    except TournamentRegistration.DoesNotExist:
+        return JsonResponse({'detail': 'Not found'}, status=404)
+
 # Mksh karla :>
 def _is_user_team_leader(user: UserAccount, team: TournamentRegistration) -> bool:
     """
@@ -116,9 +176,3 @@ def _is_user_in_team(user: UserAccount, team: TournamentRegistration) -> bool:
         team=team,
         game_account__user=user,
     ).exists()
-
-def _get_leader(team: TournamentRegistration) -> UserAccount | None:
-    return TeamMember.objects.filter(
-        team=team,
-        is_leader=True,
-    ).first()

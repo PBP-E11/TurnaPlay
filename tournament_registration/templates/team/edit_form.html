@@ -42,29 +42,12 @@
     <!-- Confirmed members list -->
     <section class="mb-8 w-full">
       <h3 class="mb-2 font-medium">Anggota Tim</h3>
-      {% if members %}
-        <div class="border border-gray-500 rounded-lg divide-y divide-gray-300">
-          {% for member in members %}
-            <div class="p-4 flex justify-between items-center">
-              <div>
-                <p class="font-semibold">{{ member.game_account.user.username }}</p>
-                <p class="text-gray-500 text-sm">{{ member.game_account.ingame_name }}</p>
-              </div>
-              {% if is_leader and member.game_account.user != user %}
-              <button
-                type="button"
-                class="bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-3 py-1 rounded-lg"
-                data-member-id="{{ member.id }}"
-              >
-                Keluarkan
-              </button>
-              {% endif %}
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="text-gray-500 italic">Belum ada anggota lain yang terkonfirmasi.</p>
-      {% endif %}
+
+      <!-- AJAX-rendered container -->
+      <div id="member-list" class="border border-gray-500 rounded-lg divide-y divide-gray-300">
+        <p class="text-gray-500 italic p-4">Memuat daftar anggota...</p>
+      </div>
+
       {% if is_leader %}
       <a href="{% url 'tournament_invite:invite_list' %}" class="text-indigo-800 underline">
         Invite member
@@ -73,7 +56,7 @@
     </section>
 
     <div class="flex justify-between items-center flex-wrap gap-4">
-      <button formaction="{% url 'team:leave_team' team.id %}" class="w-64 h-16 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-2xl">
+      <button id="leave-team-btn" type="button" class="w-64 h-16 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-2xl">
         {% if is_leader %}
         Bubarkan Tim
         {% else %}
@@ -88,6 +71,114 @@
     </div>
   </form>
 </main>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const teamId = "{{ team.id }}";
+  const memberListEl = document.getElementById("member-list");
+  const leaveBtn = document.getElementById("leave-team-btn");
+
+  async function loadMembers() {
+    try {
+      const response = await fetch(`/team/api/${teamId}/list_members`);
+      if (!response.ok) throw new Error("Failed to load members");
+      const data = await response.json();
+
+      if (!data.length) {
+        memberListEl.innerHTML = `
+          <p class="text-gray-500 italic p-4">
+            Belum ada anggota lain yang terkonfirmasi.
+          </p>`;
+        return;
+      }
+
+      memberListEl.innerHTML = data.map(member => `
+        <div class="p-4 flex justify-between items-center">
+          <div>
+            <p class="font-semibold">${member.username}</p>
+            <p class="text-gray-500 text-sm">${member.ingame_name}</p>
+          </div>
+          {% if is_leader %}
+          ${member.username !== "{{ user.username }}" ? `
+          <button
+            type="button"
+            class="bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-3 py-1 rounded-lg"
+            data-member-id="${member.game_account_id}"
+          >
+            Keluarkan
+          </button>` : ""}
+          {% endif %}
+        </div>
+      `).join("");
+    } catch (err) {
+      console.error(err);
+      memberListEl.innerHTML = `<p class="text-red-500 p-4">Gagal memuat daftar anggota.</p>`;
+    }
+  }
+
+  // Leave team handler
+  if (leaveBtn) {
+    leaveBtn.addEventListener("click", async () => {
+      if (!confirm("Apakah Anda yakin ingin keluar dari tim ini?")) return;
+
+      try {
+        const response = await fetch(`/team/api/${teamId}/leave_team`, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+          },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          alert("Berhasil keluar dari tim.");
+          window.location.href = "/";
+        } else {
+          alert(`Gagal: ${data.detail}`);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Terjadi kesalahan saat memproses permintaan.");
+      }
+    });
+  }
+
+  // Kick member handler (delegated listener)
+  memberListEl.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-member-id]");
+    if (!btn) return; // not a kick button
+
+    const memberId = btn.dataset.memberId;
+    if (!confirm("Apakah Anda yakin ingin mengeluarkan anggota ini dari tim?")) return;
+
+    try {
+      const response = await fetch(`/team/api/${teamId}/kick_member`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({ member_id: memberId }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        alert("Anggota berhasil dikeluarkan.");
+        loadMembers(); // refresh list
+      } else {
+        alert(`Gagal: ${data.detail}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat mengeluarkan anggota.");
+    }
+  });
+
+  // initial load + periodic refresh
+  loadMembers();
+  setInterval(loadMembers, 10000); // refresh every 10 seconds
+});
+</script>
 
 {% include 'footer.html' %}
 {% endblock content %}
