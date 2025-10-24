@@ -1,9 +1,10 @@
 {% load static %}
-<footer class="bg-[#494598] text-white relative">
-  <div class="max-w-7xl mx-auto relative min-h-[120px] px-6">
-    <!-- Left -->
-    <div class="absolute left-6 top-1/2 -translate-y-1/4 w-72">
-      <div class="flex items-center mb-2">
+<footer class="bg-[#494598] text-white">
+  <div
+    class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center lg:items-start text-center lg:text-left gap-10 lg:gap-6 px-6 py-10"
+  >
+    <div class="w-full max-w-xs lg:w-1/3">
+      <div class="flex items-center justify-center lg:justify-start mb-2">
         <img
           src="{% static 'image/TrophyFooterLogo.svg' %}"
           alt="Trophy"
@@ -17,44 +18,47 @@
       </p>
     </div>
 
-    <!-- Middle -->
-    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/4 text-center w-52 font-['Montserrat']">
+    <div class="w-full max-w-xs lg:w-auto font-['Montserrat']">
       <h4 class="font-semibold mb-2">Navigasi</h4>
       <ul class="text-xs space-y-1">
         <li><a href="/" class="hover:text-amber-300">Home</a></li>
-        <li><a href="/accounts/profile" class="hover:text-amber-300">Profile</a></li>
+        <li>
+          <a href="/accounts/profile/" class="hover:text-amber-300">Profile</a>
+        </li>
       </ul>
     </div>
 
-    <!-- Right -->
-    <div class="absolute right-6 top-1/2 -translate-y-1/4 w-64 font-['Montserrat']">
+    <div class="w-full max-w-xs lg:w-1/3 lg:text-right font-['Montserrat']">
       <h4 class="font-semibold mb-2">Media Sosial</h4>
-      <ul class="text-xs space-y-1">
+      <ul
+        class="text-xs space-y-1 flex flex-col items-center lg:items-end"
+      >
         <li class="flex items-center gap-2">
-          <img src="{% static 'image/InstaLogo.svg' %}" alt="Instagram" class="w-5 h-5" />
-          <a href="https://instagram.com/infotournament" target="_blank">@infotournament</a>
+          <img
+            src="{% static 'image/InstaLogo.svg' %}"
+            alt="Instagram"
+            class="w-5 h-5"
+          />
+          <a href="https://instagram.com/infotournament" target="_blank"
+            >@infotournament</a
+          >
         </li>
         <li class="flex items-center gap-2">
-          <img src="{% static 'image/FBLogo.svg' %}" alt="Facebook" class="w-5 h-5" />
-          <a href="https://facebook.com/infotournament" target="_blank">@infotournament</a>
+          <img
+            src="{% static 'image/FBLogo.svg' %}"
+            alt="Facebook"
+            class="w-5 h-5"
+          />
+          <a href="https://facebook.com/infotournament" target="_blank"
+            >@infotournament</a
+          >
         </li>
       </ul>
     </div>
   </div>
-
-  <!-- Bottom line -->
-  <div class="bg-[#302D74] text-center text-xs py-2 mt-10">
-    <p class="font-['Montserrat'] font-semibold">
-      Sumber Data:
-      <a
-        href="https://instagram.com/infoTournament"
-        target="_blank"
-        class="underline hover:text-amber-300"
-        >@infoTournament</a
-      >
-    </p>
-    <p class="mt-1 font-['Montserrat'] font-bold">
-      © 2025 TurnaPlay – All rights reserved.
+  <div class="bg-[#302D74] text-center py-3">
+    <p class="text-xs text-gray-300 font-['Montserrat']">
+      © 2024 TurnaPlay. All rights reserved.
     </p>
   </div>
 </footer>

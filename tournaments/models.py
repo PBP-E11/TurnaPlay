@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.conf import settings
 
 class Game(models.Model):
     """
@@ -76,6 +77,17 @@ class Tournament(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     objects = TournamentManager()  # Tell Tournament to use our new manager
+
+    # Track which user (Organizer or Admin) created this tournament
+    organizer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,  # This correctly points to your UserAccount model
+        on_delete=models.SET_NULL, # If organizer account is deleted, tournament remains
+        null=True,                 # Allow null for existing/admin-created tournaments
+        blank=True,                # Allow it to be blank
+        related_name='created_tournaments',
+        verbose_name=_("Organizer")
+    )
+    
 
     # FK tournament_format.id
     tournament_format = models.ForeignKey(
