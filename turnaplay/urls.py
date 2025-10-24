@@ -18,7 +18,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-<<<<<<< HEAD
     # 1. Path for the Django Admin
     path('django-admin/', admin.site.urls),
     
@@ -33,9 +32,3 @@ urlpatterns = [
     # not matched by the apps above (e.g., /api/tournaments/)
     path('', include('tournaments.urls')),
 ]
-=======
-    path('admin/', admin.site.urls),
-    path('', include('tournaments.urls', namespace='tournaments')),
-    path('', include('tournament_invite.urls', namespace='tournament_invite')),
-]
->>>>>>> 62347fb (feat(invite): update models, views, urls)
