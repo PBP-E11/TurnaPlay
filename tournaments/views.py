@@ -80,6 +80,7 @@ def tournament_list_json(request):
             'tournament_date': t.tournament_date.isoformat() if t.tournament_date else None,
             # banner may be an ImageField — prefer URL if available
             'banner_url': (t.banner.url if getattr(t, 'banner', None) and hasattr(t.banner, 'url') else None),
+            'is_active': t.is_active,
         })
 
     response_data = {
