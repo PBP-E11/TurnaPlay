@@ -1,0 +1,30 @@
+<div id="ti-toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded shadow">
+  You have new tournament invites. <a class="underline" href="{% url 'tournament_invite:invite-list' %}">View</a>
+</div>
+
+<script>
+(function(){
+  const KEY = "ti_last_seen_invite_created_at";
+
+  async function poll(){
+    try{
+      const res = await fetch("{% url 'tournament_invite:check-new-invite' %}", {credentials:"same-origin"});
+      if(!res.ok) return;
+      const j = await res.json();
+      const latest = j.latest_created_at; // ISO string
+      if(!latest) return;
+
+      const lastSeen = localStorage.getItem(KEY);
+      if(!lastSeen || new Date(latest) > new Date(lastSeen)){
+        const el = document.getElementById("ti-toast");
+        el.classList.remove("hidden");
+        localStorage.setItem(KEY, latest);
+        setTimeout(()=> el.classList.add("hidden"), 4000);
+      }
+    }catch(e){ /* ignore */ }
+  }
+
+  poll();
+  setInterval(poll, 30000);
+})();
+</script>

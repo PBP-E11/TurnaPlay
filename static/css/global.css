@@ -1,0 +1,96 @@
+/* Form Control - Input Fields */
+.form-control {
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #D1D5DB;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #494598; 
+    box-shadow: 0 0 0 0.5rem rgba(124,58,237,0.08); 
+}
+
+/* Checkbox Styling */
+.form-check-input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #504baf; 
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+.form-check-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.25rem rgba(124,58,237,0.2);
+}
+
+/* Select Dropdown */
+select.form-control {
+    background-color: #ffffff;
+    cursor: pointer;
+}
+
+/* Textarea */
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Disabled State */
+.form-control:disabled {
+    background-color: #F3F4F6;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Error State */
+.form-control.is-invalid {
+    border-color: #EF4444;
+}
+
+.form-control.is-invalid:focus {
+    border-color: #EF4444;
+    box-shadow: 0 0 0 0.5rem rgba(254,226,226,0.6);
+}
+
+/* Success State */
+.form-control.is-valid {
+    border-color: #10B981;
+}
+
+.form-control.is-valid:focus {
+    border-color: #10B981;
+    box-shadow: 0 0 0 0.5rem rgba(167,243,208,0.6);
+}
+
+/* Input with Icon (for password fields) */
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper .form-control {
+    padding-right: 3rem;
+}
+
+/* Placeholder Styling */
+.form-control::placeholder {
+    color: #9CA3AF;
+}
+
+/* Autofill Styling */
+.form-control:-webkit-autofill,
+.form-control:-webkit-autofill:hover,
+.form-control:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px white inset;
+    -webkit-text-fill-color: #1a1a2e;
+}
+

@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+{% include "navbar.html" %}
+
+<div class="max-w-5xl mx-auto p-4 space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-semibold">Tournament Invites</h1>
+
+    <!-- filter status -->
+    <form method="get" class="flex items-center gap-2">
+      <label class="text-sm">Status</label>
+      <select name="status" class="border rounded px-2 py-1" onchange="this.form.submit()">
+        <option value="all" {% if status == 'all' %}selected{% endif %}>All</option>
+        <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+        <option value="accepted" {% if status == 'accepted' %}selected{% endif %}>Accepted</option>
+        <option value="rejected" {% if status == 'rejected' %}selected{% endif %}>Rejected</option>
+      </select>
+    </form>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Incoming -->
+    <section class="space-y-3">
+      <h2 class="font-semibold text-lg">Incoming</h2>
+      {% if incoming %}
+        {% for inv in incoming %}
+          <div class="border rounded p-3 flex justify-between items-center">
+            <div class="text-sm">
+              <div class="font-medium">
+                {{ inv.tournament_registration.team_name }}
+                •
+                {{ inv.tournament_registration.tournament.tournament_name }}
+              </div>
+              <div class="text-gray-500">
+                {{ inv.tournament_registration.tournament.tournament_format.name }}
+                ({{ inv.tournament_registration.tournament.tournament_format.team_size }}p)
+              </div>
+              <div class="text-xs mt-1">Status: <span class="uppercase">{{ inv.status }}</span></div>
+              <div class="text-xs">
+                <a class="underline"
+                   href="{% url 'tournaments:tournament-detail' inv.tournament_registration.tournament_id %}">
+                  Lihat turnamen
+                </a>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              {% if inv.status == 'pending' %}
+                <button class="px-3 py-1 bg-green-600 text-white rounded"
+                        onclick="acceptInvite('{{ inv.id }}', '{{ inv.tournament_registration.tournament.tournament_format.game_id }}')">
+                  Accept
+                </button>
+                <button class="px-3 py-1 bg-gray-200 rounded" onclick="rejectInvite('{{ inv.id }}')">Reject</button>
+              {% else %}
+                <span class="text-xs text-gray-500">No actions</span>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-sm text-gray-500">No incoming invites.</p>
+      {% endif %}
+    </section>
+
+    <!-- Outgoing -->
+    <section class="space-y-3">
+      <h2 class="font-semibold text-lg">Outgoing (as Leader)</h2>
+      {% if outgoing %}
+        {% for inv in outgoing %}
+          <div class="border rounded p-3 flex justify-between items-center">
+            <div class="text-sm">
+              <div class="font-medium">
+                To: {{ inv.user_account.display_name }} (@{{ inv.user_account.username }})
+              </div>
+              <div class="text-gray-500">
+                {{ inv.tournament_registration.team_name }} •
+                {{ inv.tournament_registration.tournament.tournament_name }}
+              </div>
+              <div class="text-xs mt-1">Status: <span class="uppercase">{{ inv.status }}</span></div>
+            </div>
+
+            <div>
+              {% if inv.status == 'pending' %}
+                <button class="px-3 py-1 bg-red-600 text-white rounded"
+                        onclick="cancelInvite('{{ inv.id }}')">Cancel</button>
+              {% else %}
+                <span class="text-xs text-gray-500">No actions</span>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-sm text-gray-500">No outgoing invites.</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<!-- Widget -->
+{% include "game_account/select_widget.html" %}
+
+{% include "footer.html" %}
+
+<script>
+  // helper csrf
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+  async function acceptInvite(inviteId, gameId){
+    showGameAccountWidget(gameId);
+    const handler = async (e) => {
+      const gaId = e.detail.id;
+      window.removeEventListener('gameaccount:selected', handler);
+      const resp = await fetch("{% url 'tournament_invite:api-accept' %}", {
+        method: "POST",
+        headers: {"Content-Type":"application/json", "X-CSRFToken": getCookie('csrftoken')},
+        body: JSON.stringify({invite_id: inviteId, game_account_id: gaId}),
+        credentials: "same-origin",
+      });
+      const j = await resp.json();
+      if (j.ok) location.reload();
+      else alert(j.error || "Accept failed");
+    };
+    window.addEventListener('gameaccount:selected', handler);
+  }
+
+  async function rejectInvite(inviteId){
+    const resp = await fetch("{% url 'tournament_invite:api-reject' %}", {
+      method: "POST",
+      headers: {"Content-Type":"application/json", "X-CSRFToken": getCookie('csrftoken')},
+      body: JSON.stringify({invite_id: inviteId}),
+      credentials: "same-origin",
+    });
+    const j = await resp.json();
+    if (j.ok) location.reload();
+    else alert(j.error || "Reject failed");
+  }
+
+  async function cancelInvite(inviteId){
+    const resp = await fetch("{% url 'tournament_invite:api-cancel' %}", {
+      method: "POST",
+      headers: {"Content-Type":"application/json", "X-CSRFToken": getCookie('csrftoken')},
+      body: JSON.stringify({invite_id: inviteId}),
+      credentials: "same-origin",
+    });
+    const j = await resp.json();
+    if (j.ok) location.reload();
+    else alert(j.error || "Cancel failed");
+  }
+</script>
+
+{% endblock %}

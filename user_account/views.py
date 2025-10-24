@@ -1,3 +1,277 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.http import require_http_methods
+from django.db.models import Q, Count
+from django.core.paginator import Paginator
+from .models import UserAccount
+from .forms import RegisterForm, LoginForm, ProfileUpdateForm, CreateOrganizerForm
+import json
 
-# Create your views here.
+# ==================== ADMIN DASHBOARD ====================
+
+@login_required
+def admin_dashboard(request):
+    """Admin dashboard - redirect to manage users by default"""
+    if not request.user.is_admin():
+        return HttpResponseForbidden("You don't have permission to access this page.")
+    return redirect('user_account:admin_manage_users')
+
+@login_required
+def admin_manage_users(request):
+    """Admin page to manage all users"""
+    if not request.user.is_admin():
+        return HttpResponseForbidden("You don't have permission to access this page.")
+    
+    # Get filter parameters
+    search = request.GET.get('search', '')
+    role_filter = request.GET.get('role', '')
+    status_filter = request.GET.get('status', '')
+    
+    # Base queryset
+    users = UserAccount.objects.all()
+    
+    # Apply filters
+    if search:
+        users = users.filter(
+            Q(username__icontains=search) | 
+            Q(email__icontains=search) | 
+            Q(display_name__icontains=search)
+        )
+    
+    if role_filter:
+        users = users.filter(role=role_filter)
+    
+    if status_filter:
+        is_active = status_filter == 'active'
+        users = users.filter(is_active=is_active)
+    
+    # Statistics
+    total_users = UserAccount.objects.count()
+    active_users = UserAccount.objects.filter(is_active=True).count()
+    
+    # Pagination
+    paginator = Paginator(users, 10)
+    page_number = request.GET.get('page')
+    users_page = paginator.get_page(page_number)
+    
+    context = {
+        'users': users_page,
+        'total_users': total_users,
+        'active_users': active_users,
+        'search': search,
+        'role_filter': role_filter,
+        'status_filter': status_filter,
+    }
+    
+    return render(request, 'admin/manage_users.html', context)
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def admin_create_organizer(request):
+    """Admin create organizer account"""
+    if not request.user.is_admin():
+        return HttpResponseForbidden("You don't have permission to access this page.")
+    
+    if request.method == 'POST':
+        form = CreateOrganizerForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.role = 'organizer'
+            user.save()
+            
+            # Check if the request is AJAX using the 'X-Requested-With' header
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'message': 'Organizer account created successfully!'})
+            
+            messages.success(request, f'Organizer account {user.username} created successfully!')
+            return redirect('user_account:admin_manage_users')
+        
+        # If form is not valid, send error response (AJAX)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Form is invalid'})
+    
+    else:
+        form = CreateOrganizerForm()
+    
+    context = {'form': form}
+    return render(request, 'admin/create_organizer.html', context)
+
+@login_required
+def admin_user_detail(request, user_id):
+    """Admin view user details"""
+    if not request.user.is_admin():
+        return HttpResponseForbidden("You don't have permission to access this page.")
+    
+    user = get_object_or_404(UserAccount, id=user_id)
+    
+    # Get user's tournament history (placeholder - implement when Tournament model ready)
+    tournaments = []  # TODO: Query from Tournament model
+    
+    context = {
+        'viewed_user': user,
+        'tournaments': tournaments,
+    }
+    
+    return render(request, 'admin/user_detail.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def admin_deactivate_user(request, user_id):
+    """Admin deactivate/activate user"""
+    if not request.user.is_admin():
+        return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+    
+    user = get_object_or_404(UserAccount, id=user_id)
+    
+    # Prevent admin from deactivating themselves
+    if user.id == request.user.id:
+        return JsonResponse({'success': False, 'error': 'Cannot deactivate your own account'})
+    
+    # Toggle active status
+    user.is_active = not user.is_active
+    user.save()
+    
+    action = 'activated' if user.is_active else 'deactivated'
+    return JsonResponse({
+        'success': True, 
+        'message': f'User {user.username} has been {action}',
+        'is_active': user.is_active
+    })
+
+# ==================== AUTHENTICATION ====================
+def login_view(request):
+    """User login"""
+    if request.user.is_authenticated:
+        return redirect('tournaments:show_main')
+    
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username_or_email = form.cleaned_data['username_or_email']
+            password = form.cleaned_data['password']
+            remember_me = form.cleaned_data.get('remember_me', False)
+            
+            # Try to find user by username or email
+            user = None
+            if '@' in username_or_email:
+                try:
+                    user_account = UserAccount.objects.get(email=username_or_email, is_active=True)
+                    user = authenticate(request, username=user_account.username, password=password)
+                except UserAccount.DoesNotExist:
+                    pass
+            else:
+                user = authenticate(request, username=username_or_email, password=password)
+            
+            if user is not None:
+                login(request, user)
+                
+                # Handle remember me
+                if not remember_me:
+                    request.session.set_expiry(0)  # Session expires when browser closes
+                
+                messages.success(request, f'Welcome back, {user.display_name}!')
+                
+                # Redirect based on role
+                next_url = request.GET.get('next')
+                if next_url:
+                    return redirect(next_url)
+                elif user.is_admin():
+                    return redirect('tournaments:show_main')
+                else:
+                    return redirect('tournaments:show_main')
+            else:
+                messages.error(request, 'Invalid username/email or password')
+    else:
+        form = LoginForm()
+    
+    context = {'form': form}
+    return render(request, 'login.html', context)
+
+def register_view(request):
+    """User registration - Step 1: Basic info"""
+    if request.user.is_authenticated:
+        return redirect('user_account:login')
+    
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Account created successfully! Please complete your profile.')
+            return redirect('user_account:complete_profile')
+    else:
+        form = RegisterForm()
+    
+    context = {'form': form}
+    return render(request, 'register.html', context)
+
+@login_required
+def complete_profile_view(request):
+    """User registration - Step 2: Complete profile with avatar"""
+    if request.method == 'POST':
+        profile_image = request.POST.get('profile_image')
+        
+        user = request.user
+        user.profile_image = profile_image
+        user.save()
+        
+        messages.success(request, 'Profile completed successfully!')
+        logout(request)
+        return redirect('user_account:login')
+    
+    context = {
+        'avatar_choices': ['avatar1', 'avatar2', 'avatar3']
+    }
+    return render(request, 'complete_profile.html', context)
+
+@login_required
+def logout_view(request):
+    """User logout"""
+    logout(request)
+    messages.success(request, 'You have been logged out successfully.')
+    return redirect('user_account:login')
+
+# ==================== USER PROFILE ====================
+
+@login_required
+def profile_view(request):
+    """User profile page"""
+    user = request.user
+    
+    # Get user's tournament history
+    tournaments = []  # TODO: Query from Tournament model
+    
+    context = {
+        'user': user,
+        'tournaments': tournaments,
+    }
+    
+    return render(request, 'profile.html', context)
+
+@login_required
+def update_profile_view(request):
+    """Update user profile"""
+    if request.method == 'POST':
+        form = ProfileUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('user_account:profile')
+    else:
+        form = ProfileUpdateForm(instance=request.user)
+    
+    context = {'form': form}
+    return render(request, 'update_profile.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def delete_account_view(request):
+    """Soft delete user account"""
+    user = request.user
+    user.soft_delete()
+    logout(request)
+    messages.success(request, 'Your account has been deleted successfully.')
+    return redirect('user_account:login')

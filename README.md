@@ -14,51 +14,50 @@ TurnaPlay adalah sebuah website yang berfungsi sebagai pusat informasi turnamen 
 Tujuan utama TurnaPlay adalah menghemat waktu para gamers sekaligus membantu penyelenggara menjangkau peserta lebih luas. Dengan fitur pencarian dan filter berdasarkan game, tanggal, serta popularitas, pengguna dapat dengan mudah menemukan turnamen yang sesuai dengan minat dan kemampuannya.
 
 ## Daftar Modul
-
-All CRUD operations are for logged in only for the relevant user (or admin) unless noted otherwise (with underscore). Fields hanyalah deskripsi singkat sebagian data penting dan bagaimana interaksi antar modul.
+Semua operasi CRUD hanya dapat dilakukan oleh pengguna yang sudah login sesuai hak aksesnya (atau admin), kecuali jika ditandai (dengan garis bawah/underscore). Fields hanyalah deskripsi singkat sebagian data penting dan bagaimana interaksi antar modul.
 
 ### 1. Competition
-* **Create**: create kompetisi. _admin only_
-* **Read**: read kompetisi info public (tanggal mulai, hadiah, dll).
-* **Update**: update kompetisi info. _admin only_
-* **Delete**: delete kompetisi. _admin only_
+* **Create**: membuat kompetisi. _admin only_
+* **Read**: membaca info publik kompetisi (tanggal mulai, hadiah, dll).
+* **Update**: memperbarui info kompetisi. _admin only_
+* **Delete**: menghapus kompetisi. _admin only_
 * **Fields**: PK id, tanggal\_mulai, hadiah, thumbnail, etc.
 
 ### 2. User
-* **Create**: create profile (display name, site username, email, password).
-* **Read**: read profile. _public access_
-* **Update**: update profile.
-* **Delete**: delete profile/account (mark as inactive).
-* **Fields**: PK id, site\_username UNIQUE if active, email UNIQUE if active, password, display\_name, active.
+* **Create**: membuat profil (display name, site username, email, password).
+* **Read**: membaca profil. _public access_
+* **Update**: memperbarui profil.
+* **Delete**: menghapus profil/akun (mark as inactive).
+* **Fields**: PK id, site\_username UNIQUE jika aktif, email UNIQUE jika aktif, password, display\_name, active.
 
 ### 3. Account
-* **Create**: create account (game category, ingame name)
-* **Read**: read account _public access_
-* **Update**: - (disabled, delete and create a new account for that)
-* **Delete**: delete account (account will be marked as inactive)
+* **Create**: membuat akun (game category, ingame name)
+* **Read**: membaca akun _public access_
+* **Update**: - (disabled, tidak dapat diubah, harus hapus dan buat baru)
+* **Delete**: menghapus akun (ditandai tidak aktif)
 * **Fields**: PK id, FK user.id, game\_category, ingame\_name, active
-* **Constraint**: (game\_category, ingame\_name) UNIQUE if active
+* **Constraint**: (game\_category, ingame\_name) UNIQUE jika aktif
 
 ### 4. Competition Invite
-* **Create**: invite user to join competition
-* **Read**: read invite details (related competition, team members, captain)
-* **Update**: accept or reject invite
-* **Delete**: cancel invite
+* **Create**: mengundang pengguna untuk bergabung dalam kompetisi
+* **Read**: melihat detail invite (kompetisi terkait, anggota tim, kapten)
+* **Update**: menerima atau menolak invite
+* **Delete**: membatalkan invite
 * **Fields**: PK id, FK user.id, FK competition\_id, status
 
 ### 5. Team-member (tied to competition_registration and user account)
-* **Create**: add account to team
-* **Read**: read team members public
+* **Create**: menambahkan akun ke tim
+* **Read**: melihat anggota tim (public)
 * **Update**: -
-* **Delete**: remove account from team
+* **Delete**: mengeluarkan akun dari tim
 * **Fields**: PK id, FK account.id, FK competition\_registration.id
 
 ### 6. Competition Registration/Team Detail
-* **Create**: create team on each registration
-* **Read**: show registration/team details and credentials
-* **Update**: edit team details, ex. invite members
-* **Delete**: cancel pendaftaran kompetisi and disband team
-* **Fields**: PK id, status (valid or not)
+* **Create**: membuat tim saat registration
+* **Read**: menampilkan detail tim dan kredensial
+* **Update**: mengedit detail tim, misalnya invite anggota
+* **Delete**: membatalkan pendaftaran kompetisi dan membubarkan tim
+* **Fields**: PK id, status (valid atau tidak)
 
 ## Sumber Dataset
 
@@ -85,7 +84,7 @@ Pembuatan turnamen oleh organizer nantinya akan masuk ke display list-list turna
 ### Admin
 Admin tetap memiliki privilege untuk melihat turnamen layaknya user biasa meskipun sebenarnya tidak berkepentingan.
 Admin juga dapat mengisi dan mengubah detail turnamen jika pihak organizer tidak dapat melakukan secara langsung.
-Hak spesial admin adalah dapat menutup suatu turnamen dan menghapus/mem-ban user/akun.
+Hak spesial admin adalah dapat menutup suatu turnamen dan menghapus/memblokir user/akun.
 Fitur tersebut diadakan guna untuk mengatasi situasi adanya turnamen atau pengguna melanggar SOP  dari TurnaPlay.
 **User dengan role admin dibuat oleh admin.**
 

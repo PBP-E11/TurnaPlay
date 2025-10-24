@@ -1,13 +1,13 @@
 import uuid
 from tournaments.models import Tournament
 from game_account.models import GameAccount
+from user_account.models import UserAccount
 from django.db import models
 from django.core.exceptions import ValidationError
 
 class TournamentRegistration(models.Model):
     """
     Model representing a registration attempt (it can be complete or in progress), or in other words team details
-    This module is managed by Fahri
     """
 
     # PK id
@@ -44,13 +44,16 @@ class TournamentRegistration(models.Model):
         verbose_name = 'Tournament Registration'
         verbose_name_plural = 'Tournament Registrations'
 
+    @property
+    def max_team_size(self) -> int:
+        return self.tournament.tournament_format.team_size
+
     def __str__(self):
         return f'{self.team_name} ({self.tournament})'
 
 class TeamMember(models.Model):
     """
     A many to one relation for members that has joined a team
-    This module is managed by Fahri
     """
 
     # FK game_account.id
@@ -84,7 +87,7 @@ class TeamMember(models.Model):
         tournament = self.team.tournament
 
         conflict = TeamMember.objects.filter(
-            game_account__user_account = user_account,
+            game_account__user = user_account,
             team__tournament = tournament,
         ).exclude(pk=self.pk)
 
@@ -105,4 +108,4 @@ class TeamMember(models.Model):
             raise ValidationError("This team already has a leader.")
 
     def __str__(self):
-        return f'{game_account} ({team}) {"leader" if is_leader else "member"}'
+        return f'{self.game_account} ({self.team}) {"leader" if self.is_leader else "member"}'

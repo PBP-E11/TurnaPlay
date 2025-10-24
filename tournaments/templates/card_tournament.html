@@ -1,0 +1,39 @@
+{% load static %} {% static 'image/BannerValo.webp' as default_banner %}
+<article
+  class="bg-transparent rounded-lg overflow-hidden shadow-md transform hover:-translate-y-1 transition"
+>
+  <img
+    data-js="banner"
+    src="{{ tournament.banner|default:default_banner }}"
+    alt="{{ tournament.tournament_name }}"
+    class="w-full h-44 object-cover"
+  />
+  <div class="p-4">
+    <h3 data-js="name" class="text-lg font-bold text-black font-['Montserrat']">
+      {{ tournament.tournament_name }}
+    </h3>
+    <p data-js="date" class="text-sm text-[#D20A0A] font-bold mt-2">
+      {{ tournament.tournament_date }}
+    </p>
+    <div class="flex gap-3 mt-2">
+      <a
+        data-js="detail-url"
+        href="#"
+        class="inline-block text-sm bg-transparent border border-slate-400 text-[#494598] font-['Montserrat'] px-12 py-1 rounded-full font-semibold hover:bg-slate-200 hover:text-slate-900 transition"
+      >
+        Detail
+      </a>
+      {% if user.is_authenticated and tournament.is_active %}
+      <button
+        data-tournament-id="{{ tournament.id }}"
+        data-js="register-btn"
+        type="button"
+        class="font-['Montserrat'] px-6 py-1 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition font-semibold"
+        aria-label="Daftar to tournament"
+      >
+        Daftar
+      </button>
+      {% endif %}
+    </div>
+  </div>
+</article>

@@ -113,6 +113,9 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     # Role - menentukan hak akses pengguna
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
     
+    # Profile Picture
+    profile_image = models.CharField(max_length=50, default='avatar1', help_text='Pilihan: avatar1, avatar2, avatar3')
+
     # Active - untuk soft delete (tidak benar-benar hapus dari database)
     # False = akun dinonaktifkan/dihapus
     # required oleh django auth
@@ -125,7 +128,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     objects = UserAccountManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FEILD = ['email']
+    REQUIRED_FIELDS = ['email']
 
     class Meta:
         """
@@ -162,7 +165,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
             user = UserAccount.objects.get(username='john')
             user.soft_delete()
         """
-        self.active = False
+        self.is_active = False
         self.save()
     
     def is_admin(self):

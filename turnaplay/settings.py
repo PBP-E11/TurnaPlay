@@ -162,4 +162,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'user_account.UserAccount'
 
 # Login/Logout URLs
-LOGIN_URL = '/login/'
+LOGIN_URL = '/accounts/login/'
+
+# Session settings (optional - untuk Remember Me feature)
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_SAVE_EVERY_REQUEST = False
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
