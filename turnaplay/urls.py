@@ -16,6 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     # 1. Path for the Django Admin
@@ -25,9 +27,13 @@ urlpatterns = [
     path('accounts/', include('user_account.urls')),
     path('game-accounts/', include('game_account.urls')),
     path('invites/', include('tournament_invite.urls')),
+    path('team/', include('tournament_registration.urls')),
     
     # 3. Main app (with the homepage) is LAST
     # This will handle the root URL ('/') and any other paths
     # not matched by the apps above (e.g., /api/tournaments/)
     path('', include('tournaments.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

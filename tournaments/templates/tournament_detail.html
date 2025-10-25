@@ -1,7 +1,5 @@
-{% extends 'base.html' %} 
-{% load static %} 
-{% block content %} 
-{% include 'navbar.html' %}
+{% extends 'base.html' %} {% load static %} {% block content %} {% include
+'navbar.html' %}
 
 <div class="max-w-3xl mx-auto px-4 py-12">
   <div class="bg-white rounded-2xl shadow p-8">
@@ -14,7 +12,7 @@
 
     {% if tournament.banner %}
     <img
-      src="{{ tournament.banner.url }}"
+      src="{{ tournament.banner }}"
       alt="Banner"
       class="w-full h-64 object-cover mt-4 rounded-md"
     />
@@ -36,5 +34,4 @@
   </div>
 </div>
 
-{% include 'footer.html' %} 
-{% endblock %}
+{% include 'footer.html' %} {% endblock %}

@@ -86,7 +86,7 @@
             </div>
             {% else %}
             <div class="text-center py-12 text-gray-500">
-                <div class="text-5xl mb-3 opacity-50">🏆</div>
+                <img src="{% static 'image/TrophyNavBarLogo.svg' %}" alt="" class="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <h3 class="text-lg font-semibold text-gray-700 mb-2">Belum Ada Tournament</h3>
                 <p class="text-sm">Anda belum mengikuti tournament apapun.</p>
             </div>
@@ -97,12 +97,184 @@
         <div class="bg-white rounded-2xl p-6 mb-20 shadow-sm border border-gray-300">
             <div class="flex justify-between items-center">
                 <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                    <span>🎮</span> My Game Accounts
+                    <span><img src="{% static 'image/ControllerLogo.svg' %}" class="w-6 h-6"></span> My Game Accounts
                 </h2>
-                <button class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
+                <button id="ga-open" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
                     →
                 </button>
             </div>
+            <!-- include floating widget and make the button open it -->
+            {% include 'game_account/select_widget.html' %}
+            <script>
+                (function(){
+                    const btn = document.getElementById('ga-open');
+                    if (!btn) return;
+                    btn.style.cursor = 'pointer';
+                    btn.addEventListener('click', function(){
+                        try {
+                            console.debug('GA open clicked — showGameAccountWidget type:', typeof showGameAccountWidget);
+                        } catch (e) {
+                            console.debug('GA open clicked — showGameAccountWidget not defined yet');
+                        }
+                        // if widget JS loaded, show it. otherwise to manage page
+                        if (typeof showGameAccountWidget === 'function') {
+                            showGameAccountWidget();
+                        } else {
+                            // give developer a helpful hint in console and then fallback (debug pls work)
+                            console.warn('Game account widget not available on this page; redirecting to manage page.');
+                            window.location.href = "{% url 'game_account:gameaccount-manage' %}";
+                        }
+                    });
+                })();
+            </script>
+                    <script>
+                        // Listen for selection from the floating widget and show details in a modal instead of navigating away
+                        (function(){
+                            async function openGameAccountDetail(id){
+                                try {
+                                    const resp = await fetch('/game-accounts/' + id + '/');
+                                    if (!resp.ok) {
+                                        console.error('Failed to fetch game account detail', resp.status);
+                                        return;
+                                    }
+                                    const data = await resp.json();
+                                    // create modal
+                                    let modal = document.getElementById('ga-detail-modal');
+                                    if (!modal) {
+                                        modal = document.createElement('div');
+                                        modal.id = 'ga-detail-modal';
+                                        modal.className = 'fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50';
+                                        modal.innerHTML = '<div id="ga-detail-modal-body" class="bg-white rounded p-6 w-96 max-w-full"></div>';
+                                        document.body.appendChild(modal);
+                                    }
+                                    const body = document.getElementById('ga-detail-modal-body');
+                                    // helper: cookie util
+                                    function getCookie(name) {
+                                        const value = `; ${document.cookie}`;
+                                        const parts = value.split(`; ${name}=`);
+                                        if (parts.length === 2) return parts.pop().split(';').shift();
+                                    }
+                                    // toast portal helpers to avoid stacking context issues
+                                    function getToastPortal(){
+                                        let portal = document.getElementById('tp-toast-portal');
+                                        if (!portal) {
+                                            portal = document.createElement('div');
+                                            portal.id = 'tp-toast-portal';
+                                            portal.style.position = 'fixed';
+                                            portal.style.inset = '0';
+                                            portal.style.zIndex = '2147483647';
+                                            portal.style.pointerEvents = 'none';
+                                            document.body.appendChild(portal);
+                                        }
+                                        return portal;
+                                    }
+                                    function showToast(msg, isError){
+                                        const portal = getToastPortal();
+                                        const t = document.createElement('div');
+                                        t.textContent = msg;
+                                        t.style.pointerEvents = 'auto';
+                                        t.style.position = 'fixed';
+                                        // place toast at top-right so it never overlaps the footer
+                                        t.style.top = '2.5rem';
+                                        t.style.right = '1.5rem';
+                                        t.style.left = '';
+                                        t.style.transform = '';
+                                        t.style.padding = '0.5rem 1rem';
+                                        t.style.borderRadius = '0.5rem';
+                                        t.style.color = 'white';
+                                        t.style.backgroundColor = isError ? '#ef4444' : '#16a34a';
+                                        t.style.opacity = '0';
+                                        t.style.transition = 'opacity 120ms ease-in-out';
+                                            // ensure toast itself has a very high z-index as extra guarantee
+                                            t.style.zIndex = '99999999999';
+                                        portal.appendChild(t);
+                                        requestAnimationFrame(()=> t.style.opacity = '1');
+                                        setTimeout(()=> { t.style.opacity = '0'; setTimeout(()=> t.remove(), 140); }, 3000);
+                                    }
+                                    try {
+                                        window.showDebugToast = function(msg, isError){
+                                            try {
+                                                const portal = getToastPortal();
+                                                const t = document.createElement('div');
+                                                t.textContent = msg;
+                                                t.style.pointerEvents = 'auto';
+                                                t.style.position = 'fixed';
+                                                t.style.top = '2.5rem';
+                                                t.style.right = '1.5rem';
+                                                t.style.left = '';
+                                                t.style.transform = '';
+                                                t.style.padding = '0.5rem 1rem';
+                                                t.style.borderRadius = '0.5rem';
+                                                t.style.color = 'white';
+                                                t.style.backgroundColor = isError ? '#ef4444' : '#16a34a';
+                                                t.style.zIndex = '99999999999';
+                                                portal.appendChild(t);
+                                                setTimeout(()=>{ try{ t.remove(); }catch(e){} }, 10000);
+                                                return t;
+                                            } catch(e){ console.error('showDebugToast error', e); }
+                                        }
+                                    } catch(e) {}
+
+                                    body.innerHTML = `
+                                            <div class="flex justify-between items-start mb-4">
+                                                <h3 class="text-xl font-semibold">${data.ingame_name}</h3>
+                                                <button id="ga-detail-close" class="px-2 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded">✕</button>
+                                            </div>
+                                            <div class="mb-2"><strong>Game:</strong> ${data.game_name || data.game}</div>
+                                            <div class="mb-2"><strong>User ID:</strong> ${data.user}</div>
+                                            <div class="mb-4"><strong>Active:</strong> ${data.active}</div>
+                                            <div class="flex justify-end gap-2">
+                                                <a href="/game-accounts/html/${id}/" class="px-3 py-2 bg-gray-200 rounded">Open page</a>
+                                                <button id="ga-detail-delete" class="px-3 py-2 bg-red-600 text-white rounded">Delete</button>
+                                                <button id="ga-detail-close-2" class="px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl">Close</button>
+                                            </div>
+                                    `;
+                                    // wire close
+                                    document.getElementById('ga-detail-close').addEventListener('click', ()=> modal.remove());
+                                    document.getElementById('ga-detail-close-2').addEventListener('click', ()=> modal.remove());
+                                    // wire delete
+                                    const delBtn = document.getElementById('ga-detail-delete');
+                                    if (delBtn) {
+                                        delBtn.addEventListener('click', async () => {
+                                            if (!confirm('Delete this game account?')) return;
+                                            try {
+                                                const r = await fetch('/game-accounts/' + id + '/', {
+                                                    method: 'DELETE',
+                                                    credentials: 'same-origin',
+                                                    headers: {'X-CSRFToken': getCookie('csrftoken')}
+                                                });
+                                                if (r.status === 204) {
+                                                    showToast('Account deleted.');
+                                                    modal.remove();
+                                                    // refresh widget if available
+                                                    if (typeof showGameAccountWidget === 'function') showGameAccountWidget();
+                                                } else if (r.status === 403) {
+                                                    showToast('Not allowed', true);
+                                                } else {
+                                                    showToast('Delete failed', true);
+                                                }
+                                            } catch (err) {
+                                                console.error('Delete failed', err);
+                                                showToast('Delete failed', true);
+                                            }
+                                        });
+                                    }
+                                } catch (err) {
+                                    console.error('Error opening game account detail', err);
+                                }
+                            }
+
+                            window.addEventListener('gameaccount:selected', function(e){
+                                try {
+                                    const id = e && e.detail && e.detail.id;
+                                    if (!id) return;
+                                    openGameAccountDetail(id);
+                                } catch (err) {
+                                    console.error('Error handling gameaccount:selected', err);
+                                }
+                            });
+                        })();
+                    </script>
         </div>
 
         <!-- Logout Button -->

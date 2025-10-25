@@ -54,13 +54,24 @@ def tournament_create(request):
         return HttpResponseForbidden("You do not have permission to create a tournament.")
   
     if request.method == 'POST':
-        form = TournamentCreationForm(request.POST)
+        # Accept file uploads (banner) via request.FILES
+        form = TournamentCreationForm(request.POST, request.FILES)
         if form.is_valid():
             # Don't save to DB yet
             tournament = form.save(commit=False)
 
             tournament.organizer = request.user
-          
+            # If a banner file was uploaded, store it using default storage and
+            # write its public URL into the model's banner (a URLField).
+            banner_file = request.FILES.get('banner')
+            if banner_file:
+                from django.core.files.storage import default_storage
+                # build a safe path within MEDIA (e.g. 'banners/<filename>')
+                save_path = f"banners/{banner_file.name}"
+                name = default_storage.save(save_path, banner_file)
+                # default_storage.url() returns a URL that can be used in templates
+                tournament.banner = default_storage.url(name)
+
             tournament.save()
             return redirect(reverse('tournaments:show_main'))
     else:
@@ -85,9 +96,16 @@ def tournament_update(request, pk):
         
     if request.method == 'POST':
         # Pass instance=tournament to update the existing object
-        form = TournamentCreationForm(request.POST, instance=tournament)
+        form = TournamentCreationForm(request.POST, request.FILES, instance=tournament)
         if form.is_valid():
-            form.save()
+            t = form.save(commit=False)
+            banner_file = request.FILES.get('banner')
+            if banner_file:
+                from django.core.files.storage import default_storage
+                save_path = f"banners/{banner_file.name}"
+                name = default_storage.save(save_path, banner_file)
+                t.banner = default_storage.url(name)
+            t.save()
             return redirect(reverse('tournaments:tournament-detail', args=[tournament.pk]))
     else:
         # Pre-populate the form with the tournament's existing data
@@ -151,8 +169,8 @@ def tournament_list_json(request):
             'detail_url': request.build_absolute_uri(reverse('tournaments:tournament-detail', args=[t.pk])),
             'tournament_name': t.tournament_name,
             'tournament_date': t.tournament_date.isoformat() if t.tournament_date else None,
-            # banner may be an ImageField — prefer URL if available
-            'banner_url': (t.banner.url if getattr(t, 'banner', None) and hasattr(t.banner, 'url') else None),
+            # banner stored as a URL string in the model (or empty). Use it if present.
+            'banner_url': (t.banner if getattr(t, 'banner', None) else None),
             'is_active': t.is_active,
             'organizer_id': str(t.organizer_id) if t.organizer_id else None,
         })

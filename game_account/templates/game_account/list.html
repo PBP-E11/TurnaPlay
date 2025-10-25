@@ -67,12 +67,41 @@
     return div;
   }
 
+  function getToastPortal(){
+    let portal = document.getElementById('tp-toast-portal');
+    if (!portal) {
+      portal = document.createElement('div');
+      portal.id = 'tp-toast-portal';
+      portal.style.position = 'fixed';
+      portal.style.top = '0';
+      portal.style.left = '0';
+      portal.style.right = '0';
+      portal.style.bottom = '0';
+      portal.style.zIndex = '99999999999';
+      portal.style.pointerEvents = 'none';
+      document.body.appendChild(portal);
+    }
+    return portal;
+  }
+
   function showToast(msg, isError){
+    const portal = getToastPortal();
     const t = document.createElement('div');
     t.textContent = msg;
-    t.className = `fixed bottom-6 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded ${isError? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`;
-    document.body.appendChild(t);
-    setTimeout(()=> t.remove(), 3000);
+    t.style.pointerEvents = 'auto';
+    t.style.position = 'fixed';
+    t.style.top = '2.5rem';
+    t.style.right = '1.5rem';
+    t.style.padding = '0.5rem 1rem';
+    t.style.borderRadius = '0.5rem';
+    t.style.color = 'white';
+    t.style.backgroundColor = isError ? '#ef4444' : '#16a34a';
+    t.style.opacity = '0';
+    t.style.transition = 'opacity 120ms ease-in-out';
+    t.style.zIndex = '99999999999';
+    portal.appendChild(t);
+    requestAnimationFrame(()=> t.style.opacity = '1');
+    setTimeout(()=> { t.style.opacity = '0'; setTimeout(()=> t.remove(), 140); }, 3000);
   }
 
   async function load(){

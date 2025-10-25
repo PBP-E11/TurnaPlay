@@ -13,9 +13,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='tournament',
-            name='organizer',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_tournaments', to=settings.AUTH_USER_MODEL, verbose_name='Organizer'),
-        ),
+        # This migration was merged into 0006_alter_tournament_options_tournament_created_at_and_more
+        # and its AddField operation would duplicate the same column. Leave as no-op to preserve
+        # migration history without executing a duplicate AddField.
     ]
