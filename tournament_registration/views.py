@@ -34,13 +34,24 @@ def new_team_form(request: HttpRequest, tournament_id: uuid.UUID) -> HttpRespons
 
     # If tournament form is complete
     if request.method == 'POST' and team_form.is_valid() and leader_form.is_valid():
-        team_entry = team_form.save(commit=False)
-        team_entry.tournament = tournament
-        team_entry.save()
+        try:
+            team_entry = team_form.save(commit=False)
+            team_entry.tournament = tournament
+            team_entry.save()
+        except Exception as e:
+            # Log the actual error for admin debugging
+            print(f"Team save error: {e}")
+
+            # User-friendly message that doesn't reveal internals
+            team_form.add_error(
+                None,
+                'Unable to create team. This might be because the team name already exists, '
+                'or there may be a system issue. Please try a different name or contact support.'
+            )
 
         try:
-            leader_form.save(team=team_entry)
-            return edit_team_form(request, team_entry.id)
+            leader_form.save(team=team_entry) # Should never fail after validation, but oh well
+            return redirect('team:edit_team_form', team_id=team_entry.id)
         except:
             team_entry.delete()
             raise
@@ -66,6 +77,10 @@ def edit_team_form(request: HttpRequest, team_id: uuid.UUID) -> HttpResponse:
     if not _is_user_in_team(request.user, team):
         return HttpResponseForbidden('You are not part of this team')
 
+    # Handle case where team has no leader
+    if not leader:
+        return HttpResponseForbidden('Team has no leader, please contact support')
+
     # Forms
     team_form = TeamNameForm(request.POST or None, instance=team)
     leader_form = MemberForm(
@@ -74,16 +89,25 @@ def edit_team_form(request: HttpRequest, team_id: uuid.UUID) -> HttpResponse:
         team=team,
         instance=leader,
     )
-    # print(leader_form.is_valid())
-    # print(leader.team)
-    # print(leader_form.errors)
-    # print(request.POST)
-    # print("WAtASigma")
 
     if request.method == "POST" and team_form.is_valid() and leader_form.is_valid():
-        # save name change
-        team_form.save()
-        leader_form.save()
+        # save any change
+        try:
+            team_form.save()
+            return redirect("team:edit_team_form", team_id=team.id)
+
+        except Exception as e:
+            # Log the actual error for admin debugging
+            print(f"Team save error: {e}")
+
+            # User-friendly message that doesn't reveal internals
+            team_form.add_error(
+                None, 
+                'Unable to save team details. This might be because the team name already exists, '
+                'or there may be a system issue. Please try a different name or contact support.'
+            )
+        leader_form.save() # Should never fail after validation
+
         # redirect to the same page to avoid double submit
         return redirect("team:edit_team_form", team_id=team.id)
 
