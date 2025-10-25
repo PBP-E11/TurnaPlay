@@ -33,8 +33,10 @@ def new_team_form(request: HttpRequest, tournament_id: uuid.UUID) -> HttpRespons
         return redirect('team:edit_team_form', team_id=membership.team.id)
 
     # If tournament form is complete
-    if request.method == 'POST' and _try_create_team(team_form, leader_form, tournament):
-        return redirect('team:edit_team_form', team_id=team_entry.id)
+    if request.method == 'POST':
+        team_entry = _try_create_team(team_form, leader_form, tournament)
+        if team_entry is not None:
+            return redirect('team:edit_team_form', team_id=team_entry.id)
 
     context = {
         'tournament': tournament,
@@ -187,9 +189,9 @@ def _is_user_in_team(user: UserAccount, team: TournamentRegistration) -> bool:
         game_account__user=user,
     ).exists()
 
-def _try_create_team(team_form: TeamNameForm, leader_form: PreTeamMemberForm, tournament: Tournament) -> bool:
+def _try_create_team(team_form: TeamNameForm, leader_form: PreTeamMemberForm, tournament: Tournament) -> TournamentRegistration | None:
     if (not team_form.is_valid()) or (not leader_form.is_valid()):
-        return False
+        return
     try:
         team_entry = team_form.save(commit=False)
         team_entry.tournament = tournament
@@ -204,11 +206,11 @@ def _try_create_team(team_form: TeamNameForm, leader_form: PreTeamMemberForm, to
             ValidationError('Unable to create team. This might be because the team name already exists, '
             'or there may be a system issue. Please try a different name or contact support.')
         )
-        return False
+        return
 
     try:
         leader_form.save(team=team_entry) # Should never fail after validation, but oh well
-        return True
+        return team_entry
     except:
         team_entry.delete()
         raise
