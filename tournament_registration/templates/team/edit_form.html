@@ -31,6 +31,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 512 512"><path fill="#8b8b8b" d="M332.64 64.58C313.18 43.57 286 32 256 32c-30.16 0-57.43 11.5-76.8 32.38c-19.58 21.11-29.12 49.8-26.88 80.78C156.76 206.28 203.27 256 256 256s99.16-49.71 103.67-110.82c2.27-30.7-7.33-59.33-27.03-80.6M432 480H80a31 31 0 0 1-24.2-11.13c-6.5-7.77-9.12-18.38-7.18-29.11C57.06 392.94 83.4 353.61 124.8 326c36.78-24.51 83.37-38 131.2-38s94.42 13.5 131.2 38c41.4 27.6 67.74 66.93 76.18 113.75c1.94 10.73-.68 21.34-7.18 29.11A31 31 0 0 1 432 480"/></svg>
           <p class="flex-grow">{{ leader_form.instance.game_account.user.username }}</p>
           <p class="flex-grow">{{ leader_form.game_account }}</p>
+          {{ leader_form.team }} {# Hidden #}
           {# Edit icon #}
           {% if is_leader %}
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="#8b8b8b" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M19.09 14.441v4.44a2.37 2.37 0 0 1-2.369 2.369H5.12a2.37 2.37 0 0 1-2.369-2.383V7.279a2.356 2.356 0 0 1 2.37-2.37H9.56"/><path d="M6.835 15.803v-2.165c.002-.357.144-.7.395-.953l9.532-9.532a1.36 1.36 0 0 1 1.934 0l2.151 2.151a1.36 1.36 0 0 1 0 1.934l-9.532 9.532a1.36 1.36 0 0 1-.953.395H8.197a1.36 1.36 0 0 1-1.362-1.362M19.09 8.995l-4.085-4.086"/></g></svg>
@@ -49,11 +50,19 @@
       </div>
 
       {% if is_leader %}
-      <a href="{% url 'tournament_invite:invite_list' %}" class="text-indigo-800 underline">
+      <a href="{% url 'tournament_invite:invite-list' %}" class="text-indigo-800 underline">
         Invite member
       </a>
       {% endif %}
     </section>
+
+    {% if leader_form.errors %}
+    <ul class="text-red-600">
+      {% for key,value in leader_form.errors.items %} 
+      <li>{{ key|escape }} : {{ value|escape }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
 
     <div class="flex justify-between items-center flex-wrap gap-4">
       <button id="leave-team-btn" type="button" class="w-64 h-16 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-2xl">

@@ -78,13 +78,24 @@ class TeamMember(models.Model):
     class Meta:
         verbose_name = 'Team Member'
         verbose_name_plural = 'Team Members'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['team'], 
+                condition=models.Q(is_leader=True),
+                name='unique_leader_per_team'
+            )
+        ]
 
     def clean(self):
         super().clean()
 
         # User joins at most one team per tournament
-        user_account = self.game_account.user
-        tournament = self.team.tournament
+        # May fail due to None shit idk
+        try:
+            user_account = self.game_account.user
+            tournament = self.team.tournament
+        except Exception as e:
+            raise ValidationError(f'Internal server error of type {type(e).__name__}: {str(e)}')
 
         conflict = TeamMember.objects.filter(
             game_account__user = user_account,
@@ -95,17 +106,6 @@ class TeamMember(models.Model):
             raise ValidationError(
                 "This user is already in another team for this tournament."
             )
-
-        # There is exactly one leader per team
-        team = self.team
-        leader_count = TeamMember.objects.filter(
-            team = self.team,
-            is_leader = True,
-        ).exclude(pk=self.pk).count() + (1 if self.is_leader else 0)
-        if (leader_count == 0):
-            raise ValidationError("This team must have a leader.")
-        elif (leader_count > 1):
-            raise ValidationError("This team already has a leader.")
 
     def __str__(self):
         return f'{self.game_account} ({self.team}) {"leader" if self.is_leader else "member"}'

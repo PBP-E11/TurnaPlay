@@ -27,7 +27,7 @@
         <p>{{ tournament.tournament_format.name }}</p>
       </div>
 
-      <a href="{% url 'team:tournament_details' tournament.id %}" title="Valorant Cup 2025"><p class="text-indigo-800 text-sm">← Detail turnamen</p></a>
+      <a href="{% url 'team:tournament_details' tournament.id %}" title="{{ tournament.tournament_name }}"><p class="text-indigo-800 text-sm">← Detail turnamen</p></a>
     </div>
   </div>
 </header>
@@ -61,6 +61,6 @@
       <p>{{ tournament.tournament_format.name }}</p>
     </div>
 
-    <a href="/" title="Valorant Cup 2025"><p class="text-indigo-700 text-sm">← Detail turnamen</p></a>
+    <a href="{% url 'team:tournament_details' tournament.id %}" title="{{ tournament.tournament_name }}"><p class="text-indigo-700 text-sm">← Detail turnamen</p></a>
   </div>
 </header>
