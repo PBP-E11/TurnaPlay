@@ -83,8 +83,12 @@ class TeamMember(models.Model):
         super().clean()
 
         # User joins at most one team per tournament
-        user_account = self.game_account.user
-        tournament = self.team.tournament
+        # May fail due to None shit idk
+        try:
+            user_account = self.game_account.user
+            tournament = self.team.tournament
+        except Exception as e:
+            raise ValidationError(f'Internal server error of type {type(e).__name__}: {str(e)}')
 
         conflict = TeamMember.objects.filter(
             game_account__user = user_account,

@@ -4,10 +4,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.urls import reverse
+from django.core.exceptions import ValidationError
 from .models import TournamentRegistration, TeamMember
 from user_account.models import UserAccount
 from tournaments.models import Tournament
-from .forms import TeamNameForm, MemberForm, MemberForm
+from .forms import TeamNameForm, MemberForm, PreTeamMemberForm
 
 @require_http_methods(['GET', 'POST'])
 @login_required
@@ -16,8 +17,8 @@ def new_team_form(request: HttpRequest, tournament_id: uuid.UUID) -> HttpRespons
     tournament = get_object_or_404(Tournament, pk=tournament_id)
 
     # Initialize forms
-    team_form = TeamNameForm(initial=request.POST or None)
-    leader_form = MemberForm(
+    team_form = TeamNameForm(request.POST or None)
+    leader_form = PreTeamMemberForm(
         request.POST or None,
         user=request.user,
         tournament=tournament,
@@ -32,22 +33,17 @@ def new_team_form(request: HttpRequest, tournament_id: uuid.UUID) -> HttpRespons
         return redirect('team:edit_team_form', team_id=membership.team.id)
 
     # If tournament form is complete
-    if team_form.is_valid() and leader_form.is_valid() and request.method == 'POST':
-        if leader_form.cleaned_data['username'] != request.user.username:
-            return HttpResponseForbidden('Cannot create team as another user')
-        if leader_form.cleaned_data['game_account'].user != request.user:
-            return HttpResponseForbidden('This game account does not belong to the user logged in')
-
+    if request.method == 'POST' and team_form.is_valid() and leader_form.is_valid():
         team_entry = team_form.save(commit=False)
         team_entry.tournament = tournament
         team_entry.save()
 
-        TeamMember.objects.create(
-            is_leader=True,
-            game_account=leader_form.cleaned_data['game_account'],
-            team=team_entry,
-        )
-        return edit_team_form(request, team_entry.id)
+        try:
+            leader_form.save(team=team_entry)
+            return edit_team_form(request, team_entry.id)
+        except:
+            team_entry.delete()
+            raise
 
     context = {
         'tournament': tournament,
@@ -78,14 +74,16 @@ def edit_team_form(request: HttpRequest, team_id: uuid.UUID) -> HttpResponse:
         team=team,
         instance=leader,
     )
+    # print(leader_form.is_valid())
+    # print(leader.team)
+    # print(leader_form.errors)
+    # print(request.POST)
+    # print("WAtASigma")
 
-    if request.method == "POST" and team_form.is_valid():
-        # (optional) permission check: only allow team leader to rename
-        if leader and getattr(leader.game_account, "user", None) != request.user:
-            return HttpResponseForbidden("Only the team leader can edit the team.")
-
+    if request.method == "POST" and team_form.is_valid() and leader_form.is_valid():
         # save name change
         team_form.save()
+        leader_form.save()
         # redirect to the same page to avoid double submit
         return redirect("team:edit_team_form", team_id=team.id)
 
