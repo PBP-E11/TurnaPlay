@@ -33,28 +33,8 @@ def new_team_form(request: HttpRequest, tournament_id: uuid.UUID) -> HttpRespons
         return redirect('team:edit_team_form', team_id=membership.team.id)
 
     # If tournament form is complete
-    if request.method == 'POST' and team_form.is_valid() and leader_form.is_valid():
-        try:
-            team_entry = team_form.save(commit=False)
-            team_entry.tournament = tournament
-            team_entry.save()
-        except Exception as e:
-            # Log the actual error for admin debugging
-            print(f"Team save error: {e}")
-
-            # User-friendly message that doesn't reveal internals
-            team_form.add_error(
-                None,
-                'Unable to create team. This might be because the team name already exists, '
-                'or there may be a system issue. Please try a different name or contact support.'
-            )
-
-        try:
-            leader_form.save(team=team_entry) # Should never fail after validation, but oh well
-            return redirect('team:edit_team_form', team_id=team_entry.id)
-        except:
-            team_entry.delete()
-            raise
+    if request.method == 'POST' and _try_create_team(team_form, leader_form, tournament):
+        return redirect('team:edit_team_form', team_id=team_entry.id)
 
     context = {
         'tournament': tournament,
@@ -181,6 +161,14 @@ def kick_member(request: HttpRequest, team_id: uuid.UUID):
     except TournamentRegistration.DoesNotExist:
         return JsonResponse({'detail': 'Not found'}, status=404)
 
+@require_http_methods(["GET"])
+def tournament_details(request: HttpRequest, tournament_id: uuid.UUID) -> HttpResponse:
+    tournament = get_object_or_404(Tournament, pk=tournament_id)
+    context = {
+        'tournament': tournament
+    }
+    return render(request, 'team/tournament_details.html', context)
+
 # Mksh karla :>
 def _is_user_team_leader(user: UserAccount, team: TournamentRegistration) -> bool:
     """
@@ -199,10 +187,28 @@ def _is_user_in_team(user: UserAccount, team: TournamentRegistration) -> bool:
         game_account__user=user,
     ).exists()
 
-@require_http_methods(["GET"])
-def tournament_details(request: HttpRequest, tournament_id: uuid.UUID) -> HttpResponse:
-    tournament = get_object_or_404(Tournament, pk=tournament_id)
-    context = {
-        'tournament': tournament
-    }
-    return render(request, 'team/tournament_details.html', context)
+def _try_create_team(team_form: TeamNameForm, leader_form: PreTeamMemberForm, tournament: Tournament) -> bool:
+    if (not team_form.is_valid()) or (not leader_form.is_valid()):
+        return False
+    try:
+        team_entry = team_form.save(commit=False)
+        team_entry.tournament = tournament
+        team_entry.save()
+    except Exception as e:
+        # Log the actual error for admin debugging
+        print(f"Team save error: {e}")
+
+        # User-friendly message
+        team_form.add_error(
+            'team_name',
+            ValidationError('Unable to create team. This might be because the team name already exists, '
+            'or there may be a system issue. Please try a different name or contact support.')
+        )
+        return False
+
+    try:
+        leader_form.save(team=team_entry) # Should never fail after validation, but oh well
+        return True
+    except:
+        team_entry.delete()
+        raise

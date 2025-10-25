@@ -56,13 +56,7 @@
       {% endif %}
     </section>
 
-    {% if leader_form.errors %}
-    <ul class="text-red-600">
-      {% for key,value in leader_form.errors.items %} 
-      <li>{{ key|escape }} : {{ value|escape }}</li>
-      {% endfor %}
-    </ul>
-    {% endif %}
+    {% include 'team/errors.html' %}
 
     <div class="flex justify-between items-center flex-wrap gap-4">
       <button id="leave-team-btn" type="button" class="w-64 h-16 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-2xl">

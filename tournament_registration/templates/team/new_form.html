@@ -35,13 +35,7 @@
       </section>
     </div>
 
-    {% if leader_form.errors %}
-    <ul class="text-red-600">
-      {% for key,value in leader_form.errors.items %} 
-      <li>{{ key|escape }} : {{ value|escape }}</li>
-      {% endfor %}
-    </ul>
-    {% endif %}
+    {% include 'team/errors.html' %}
 
     <div class="flex justify-end flex-wrap gap-4">
       <button type="submit" class="w-64 h-16 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-2xl">
