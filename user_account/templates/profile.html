@@ -55,16 +55,16 @@
                 {% for tournament in tournaments %}
                 <div class="border border-gray-200 rounded-xl p-5 hover:border-[#494598] hover:shadow-md transition">
                     <div class="grid grid-cols-4 gap-4 items-center">
-                        <div class="font-semibold text-gray-900">
+                        <div class="text-sm text-gray-600">
                             Nama Turnamen
                             <br>
-                            <span class="text-base font-semibold text-gray-900">{{ tournament.name }}</span>
+                            <span class="text-base font-semibold text-gray-900">{{ tournament.tournament_name }}</span>
                         </div>
                         <div class="text-sm text-gray-600">
                             Game
                             <br>
                             <span class="text-base font-semibold text-gray-900">
-                                {{ tournament.game }}
+                                {{ tournament.tournament_format.game.name }}
                             </span>
                         </div>
                         <div class="text-left">
@@ -75,7 +75,7 @@
                         </div>
                         <div class="text-left">
                             <div class="text-sm text-gray-600">Tanggal</div>
-                            <div class="font-medium">{{ tournament.date }}</div>
+                            <div class="font-medium">{{ tournament.tournament_date }}</div>
                         </div>
                     </div>
                 </div>
