@@ -1,7 +1,6 @@
 {% extends 'base.html' %} {% load static %} {% block content %} {% include 'navbar.html' %}
 
-<!-- Banner -->
-<section class="w-full px-4 md:px-10 py-6">
+<section class="w-full px-4 md:px-10 py-6 mt-14">
   <div
     class="relative w-full rounded-xl overflow-hidden border border-indigo-400 shadow-sm bg-white"
   >
@@ -29,52 +28,76 @@
   </div>
 </section>
 
-<!-- Game Logos strip -->
 <section class="bg-[#494598] py-6 mt-8">
   <div
-    class="max-w-7xl mx-auto px-4 flex justify-center items-center flex-wrap gap-6 md:gap-10"
+    id="game-filter-bar"
+    class="max-w-7xl mx-auto px-4 flex justify-center items-center flex-wrap gap-4 md:gap-6"
   >
-    <img
-      src="{% static 'image/ValoLogo.svg' %}"
-      alt="Valorant"
-      class="h-10 md:h-12"
-    />
-    <img
-      src="{% static 'image/MobileLegendLogo.svg' %}"
-      alt="Mobile Legends"
-      class="h-10 md:h-12"
-    />
-    <img
-      src="{% static 'image/FCMobile.svg' %}"
-      alt="FC Mobile"
-      class="h-10 md:h-12"
-    />
-    <img
-      src="{% static 'image/FifaLogo.svg' %}"
-      alt="FIFA"
-      class="h-10 md:h-12"
-    />
-    <img
-      src="{% static 'image/TekkenLogo.svg' %}"
-      alt="Tekken 8"
-      class="h-10 md:h-12"
-    />
-    <img
-      src="{% static 'image/DotaLogo.svg' %}"
-      alt="Dota 2"
-      class="h-10 md:h-12"
-    />
-    <img
-      src="{% static 'image/CODLogo.svg' %}"
-      alt="Call of Duty Mobile"
-      class="h-10 md:h-12"
-    />
+    <button
+      type="button"
+      class="game-filter-btn active-filter text-white font-semibold bg-white/30 px-4 py-2 rounded-lg transition"
+      data-game-name=""
+    >
+      Show All
+    </button>
+
+    <button
+      type="button"
+      class="game-filter-btn"
+      data-game-name="Mobile Legends"
+    >
+      <img
+        src="{% static 'image/MobileLegendLogo.svg' %}"
+        alt="Mobile Legends"
+        class="h-10 md:h-12"
+      />
+    </button>
+    <button type="button" class="game-filter-btn" data-game-name="PUBG">
+      <img
+        src="{% static 'image/PUBGLogo.svg' %}"
+        alt="PUBG"
+        class="h-10 md:h-12"
+      />
+    </button>
+    <button type="button" class="game-filter-btn" data-game-name="Valorant">
+      <img
+        src="{% static 'image/ValoLogo.svg' %}"
+        alt="Valorant"
+        class="h-10 md:h-16"
+      />
+    </button>
+    <button type="button" class="game-filter-btn" data-game-name="Point Blank">
+      <img
+        src="{% static 'image/PointBlankLogo.svg' %}"
+        alt="Point Blank"
+        class="h-10 md:h-12"
+      />
+    </button>
+    <button type="button" class="game-filter-btn" data-game-name="Roblox">
+      <img
+        src="{% static 'image/Roblox.svg' %}"
+        alt="Roblox"
+        class="h-10 md:h-12"
+      />
+    </button>
+    <button type="button" class="game-filter-btn" data-game-name="FreeFire">
+      <img
+        src="{% static 'image/FreeFireLogo.svg' %}"
+        alt="FreeFire"
+        class="h-10 md:h-12 max-w-32"
+      />
+    </button>
   </div>
 </section>
 
-<!-- Active Tournament List -->
-<main class="max-w-7xl mx-auto px-4 py-8">
-  <div id="tournament-list-header" class="flex items-center gap-4 mb-8">
+<main
+  class="max-w-7xl mx-auto px-4 py-8"
+  data-user-id="{{ current_user_id }}"
+  data-is-admin="{{ user_is_admin|yesno:'true,false' }}"
+  data-is-organizer="{{ user_is_organizer|yesno:'true,false' }}"
+>
+  {% if can_create %}
+  <div id="tournament-list-header" class="flex items-center gap-4 mb-4">
     <img
       src="{% static 'image/ControllerLogo.svg' %}"
       alt="Controller Logo"
@@ -84,21 +107,39 @@
       Active Tournament List
     </h2>
   </div>
-  {# Create/controls row inserted below header (Create + Prev/Next) #}
-  <!-- Controls row: Create on the left, Prev/Next on the right -->
-  <div class="mt-4 flex items-center justify-between mb-4">
-    <div class="flex items-center">
-      {% if can_create %}
+  {% endif %}
+
+  <div
+    class="mt-4 flex flex-col sm:flex-row items-center justify-between mb-4 gap-4"
+  >
+    {% if can_create %}
+    <div class="flex items-center w-full sm:w-auto">
       <a
         href="/tournaments/create/"
-        class="bg-[#3D3A80] border border-black text-white font-semibold font-['Montserrat'] px-5 py-2 rounded-lg shadow hover:bg-indigo-900 transition"
+        class="bg-[#3D3A80] border border-black text-white font-semibold font-['Montserrat'] px-5 py-2 rounded-lg shadow hover:bg-indigo-900 transition w-full text-center sm:w-auto"
       >
         Create Tournament
       </a>
-      {% endif %}
     </div>
+    {% else %}
+    <div
+      id="tournament-list-header"
+      class="flex items-center gap-4 w-full sm:w-auto"
+    >
+      <img
+        src="{% static 'image/ControllerLogo.svg' %}"
+        alt="Controller Logo"
+        class="h-6 md:h-8 w-auto"
+      />
+      <h2 class="text-2xl font-bold font-['Montserrat'] m-0">
+        Active Tournament List
+      </h2>
+    </div>
+    {% endif %}
 
-    <div class="font-['Montserrat'] flex items-center gap-3">
+    <div
+      class="font-['Montserrat'] flex items-center gap-3 w-full sm:w-auto justify-end"
+    >
       <a
         id="prev-button"
         data-prev-page="{% if page_obj.has_previous %}{{ page_obj.previous_page_number }}{% endif %}"
@@ -117,287 +158,386 @@
       </button>
     </div>
   </div>
+
   <div
     id="tournament-grid"
     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-14"
   >
-    {% for tournament in tournaments %} {% include 'card_tournament.html' %} {% endfor %}
+    {% for tournament in tournaments %}{% include 'card_tournament.html' %}{% endfor %}
   </div>
 
-<!-- Template used by JS to append cards (Tailwind classes applied) -->
-<template id="tournament-card-template">
-  <article
-    class="bg-transparent rounded-lg overflow-hidden shadow-md transform hover:-translate-y-1 transition"
-  >
-    <img
-      data-js="banner"
-      class="w-full h-44 object-cover"
-      src=""
-      alt="Tournament Banner"
-    />
-    <div class="p-4">
-      <h3
-        data-js="name"
-        class="text-lg font-bold text-black font-['Montserrat']"
-      >
-        Tournament Name
-      </h3>
-      <p data-js="date" class="text-sm text-[#D20A0A] font-bold mt-2">
-        Tournament Date
-      </p>
-      <div class="flex gap-3 mt-2">
-        <!-- Detail (secondary) -->
-        <a
-          data-js="detail-url"
-          href="#"
-          class="inline-block text-sm bg-transparent border border-slate-400 text-[#494598] font-['Montserrat'] px-12 py-1 rounded-full font-semibold hover:bg-slate-200 hover:text-slate-900 transition"
+  <template id="tournament-card-template">
+    <article
+      class="bg-transparent rounded-lg overflow-hidden shadow-md transform hover:-translate-y-1 transition"
+    >
+      <img
+        data-js="banner"
+        class="w-full h-44 object-cover"
+        src=""
+        alt="Tournament Banner"
+      />
+      <div class="p-4">
+        <h3
+          data-js="name"
+          class="text-lg font-bold text-black font-['Montserrat']"
         >
-          Detail
-        </a>
+          Tournament Name
+        </h3>
+        <p data-js="date" class="text-sm text-[#D20A0A] font-bold mt-2">
+          Tournament Date
+        </p>
+        <div
+          data-js="button-container"
+          class="flex gap-3 mt-2 items-center flex-wrap"
+        >
+          <a
+            data-js="detail-url"
+            href="#"
+            class="inline-block text-sm bg-transparent border border-slate-400 text-[#494598] font-['Montserrat'] px-12 py-1 rounded-full font-semibold hover:bg-slate-200 hover:text-slate-900 transition"
+          >
+            Detail
+          </a>
 
-        <!-- Daftar (primary) -->
-        {% if user.is_authenticated %}
-        <button
-          data-js="register-btn"
-          type="button"
-          class="font-['Montserrat'] px-6 py-1 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition font-semibold"
-          aria-label="Daftar to tournament"
-        >
-          Daftar
-        </button>
-        {% endif %}
+          {% if user.is_authenticated %}
+          <a
+            href="/create/{{ tournament.id }}"
+            data-js="register-btn"
+            type="button"
+            class="font-['Montserrat'] px-6 py-1 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition font-semibold"
+            aria-label="Daftar to tournament"
+          >
+            Daftar
+          </a>
+          {% endif %}
+        </div>
       </div>
-    </div>
-  </article>
-</template>
+    </article>
+  </template>
 
-<script>
-  // small helper moved to top-level scope to satisfy static analysis
-  function safeText(value) {
-    return value == null ? "" : String(value);
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    // Smooth scroll from banner CTA to tournament grid
-    console.log("Tournament pagination script loaded!");
-    const bannerCta = document.getElementById("banner-cta");
-    if (bannerCta) {
-      bannerCta.addEventListener("click", function (ev) {
-        // Let anchor behavior remain for keyboard/AT, but enhance with smooth scroll
-        ev.preventDefault();
-        const target = document.getElementById("tournament-grid");
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-          // update URL hash without jumping
-          history.replaceState(null, "", "#tournament-grid");
-        }
-      });
-    }
-    const tournamentGrid = document.getElementById("tournament-grid");
-    const cardTemplate = document.getElementById("tournament-card-template");
-    const prevButton = document.getElementById("prev-button");
-    const nextButton = document.getElementById("next-button");
-
-    // default banner available server-side
-    const defaultBanner = "{% static 'image/BannerValo.webp' %}";
-
-    function createTournamentCard(tournament) {
-      const cardClone = document.importNode(cardTemplate.content, true);
-      // Ensure classes match the server-rendered partial so styling stays consistent
-      const articleEl = cardClone.querySelector("article");
-      const img =
-        cardClone.querySelector('[data-js="banner"]') ||
-        cardClone.querySelector("img");
-      const nameEl = cardClone.querySelector('[data-js="name"]');
-      const dateEl = cardClone.querySelector('[data-js="date"]');
-      const detailEl = cardClone.querySelector('[data-js="detail-url"]');
-
-      // Apply the canonical classes used in card_tournament.html
-      if (articleEl) {
-        articleEl.className =
-          "bg-transparent rounded-lg overflow-hidden shadow-md transform hover:-translate-y-1 transition";
-      }
-      if (img) {
-        img.className = "w-full h-44 object-cover";
-        img.src = tournament.banner || tournament.banner_url || defaultBanner;
-        img.alt = `${
-          tournament.name || tournament.tournament_name || "Tournament"
-        } Banner`;
-      }
-
-      if (nameEl) {
-        nameEl.className = "text-lg font-bold text-black font-['Montserrat']";
-        nameEl.textContent = safeText(
-          tournament.name || tournament.tournament_name
-        );
-      }
-      if (dateEl) {
-        dateEl.className = "text-sm text-[#D20A0A] font-bold mt-2";
-        dateEl.textContent = safeText(
-          tournament.date || tournament.tournament_date
-        );
-      }
-      if (detailEl) {
-        detailEl.className =
-          "inline-block text-sm bg-transparent border border-slate-400 text-[#494598] font-['Montserrat'] px-12 py-1 rounded-full font-semibold hover:bg-slate-200 hover:text-slate-900 transition";
-        if (tournament.detail_url) {
-          detailEl.href = tournament.detail_url;
-        } else if (tournament.id) {
-          detailEl.href = `/tournaments/${tournament.id}/`;
-        } else {
-          detailEl.href = "#";
-        }
-      }
-      
-      // --- THIS IS THE CORRECTED BLOCK ---
-      const registerEl = cardClone.querySelector('[data-js="register-btn"]');
-      if (registerEl) {
-        // If tournament is NOT active, remove the button.
-        // The button is already present in the template if the user is authenticated.
-        if (!tournament.is_active) {
-          registerEl.remove();
-        } else {
-          // Otherwise, attach tournament id and click handler
-          registerEl.dataset.tournamentId = tournament.id || '';
-          registerEl.addEventListener('click', (ev) => {
-            ev.preventDefault();
-            console.debug('Register clicked for tournament', registerEl.dataset.tournamentId);
-            // Default behavior: navigate to tournament detail page and append a register anchor
-            try {
-              const tid = registerEl.dataset.tournamentId;
-              if (detailEl && detailEl.href) {
-                // preserve absolute href
-                globalThis.location.href = detailEl.href + '#register';
-              } else if (tid) {
-                globalThis.location.href = `/tournaments/${tid}/#register`;
-              }
-            } catch (error_) {
-              console.error('Navigation to registration failed', error_);
-            }
-          }); // <-- Closing parenthesis and brace for addEventListener
-        }
-      } // <-- Closing brace for if (registerEl)
-      // --- END OF CORRECTED BLOCK ---
-
-      return cardClone;
+  <script>
+    // small helper moved to top-level scope to satisfy static analysis
+    function safeText(value) {
+      return value == null ? "" : String(value);
     }
 
-    // Render the tournament grid from API data (replaces existing items)
-    function renderTournamentsFromData(data) {
-      // clear existing
-      tournamentGrid.innerHTML = "";
-      for (const t of data.tournaments || []) {
-        tournamentGrid.appendChild(createTournamentCard(t));
-      }
+    document.addEventListener("DOMContentLoaded", () => {
+      // --- READ USER DATA FROM <main> TAG ---
+      const mainElement = document.querySelector("main[data-user-id]");
+      const currentUserId = mainElement ? mainElement.dataset.userId : "None";
+      const userIsAdmin = mainElement
+        ? mainElement.dataset.isAdmin === "true"
+        : false;
+      const userIsOrganizer = mainElement
+        ? mainElement.dataset.isOrganizer === "true"
+        : false;
+      const userIsAuthenticated = !!(currentUserId && currentUserId !== "None");
 
-      // Update next/prev button dataset values and visibility
-      if (prevButton) {
-        if (data.previous_page) {
-          prevButton.dataset.prevPage = String(data.previous_page);
-          prevButton.href = `?page=${data.previous_page}`;
-          prevButton.classList.remove("hidden");
-        } else {
-          prevButton.classList.add("hidden");
-        }
-      }
-
-      if (nextButton) {
-        if (data.has_next) {
-          const np =
-            data.next_page !== undefined && data.next_page !== null
-              ? data.next_page
-              : Number(data.page) + 1;
-          nextButton.dataset.nextPage = String(np);
-          nextButton.classList.remove("hidden");
-          nextButton.disabled = false;
-          nextButton.textContent = "Next >";
-        } else {
-          nextButton.classList.add("hidden");
-        }
-      }
-    }
-    // Event delegation for register buttons rendered server-side (and any future ones)
-    document.body.addEventListener('click', function (ev) {
-      const btn = ev.target.closest('[data-js="register-btn"]');
-      if (!btn) return;
-      // same behavior as client-cloned buttons: navigate to detail page anchor
-      ev.preventDefault();
-  const tid = btn.dataset.tournamentId || null;
-      const detailAnchor = btn.closest('article')?.querySelector('[data-js="detail-url"]');
-      try {
-        if (detailAnchor && detailAnchor.href) {
-          globalThis.location.href = detailAnchor.href + '#register';
-        } else if (tid) {
-          globalThis.location.href = `/tournaments/${tid}/#register`;
-        }
-      } catch (error_) {
-        console.error('Delegated navigation to registration failed', error_);
-      }
-    });
-
-    async function fetchAndRenderPage(pageNumber) {
-      if (!pageNumber) return;
-      // update UI
-      if (nextButton) {
-        nextButton.disabled = true;
-        nextButton.textContent = "Loading...";
-      }
-
-      try {
-        const url = `/api/tournaments/?page=${encodeURIComponent(pageNumber)}`;
-        const response = await fetch(url, {
-          headers: { "X-Requested-With": "XMLHttpRequest" },
+      // Smooth scroll from banner CTA to tournament grid
+      console.log("Tournament pagination script loaded!");
+      const bannerCta = document.getElementById("banner-cta");
+      if (bannerCta) {
+        bannerCta.addEventListener("click", function (ev) {
+          // Let anchor behavior remain for keyboard/AT, but enhance with smooth scroll
+          ev.preventDefault();
+          const target = document.getElementById("tournament-list-header");
+          if (target) {
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+            // update URL hash without jumping
+            history.replaceState(null, "", "#tournament-list-header");
+          }
         });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
+      }
+      const tournamentGrid = document.getElementById("tournament-grid");
+      const cardTemplate = document.getElementById("tournament-card-template");
+      const prevButton = document.getElementById("prev-button");
+      const nextButton = document.getElementById("next-button");
 
-        renderTournamentsFromData(data);
+      // default banner available server-side
+      const defaultBanner = "{% static 'image/BannerValo.webp' %}";
 
-        // update history (so back button works and direct links possible)
-        const newUrl = new URL(globalThis.location.href);
-        newUrl.searchParams.set("page", String(data.page || pageNumber));
-        globalThis.history.pushState(
-          { page: data.page || pageNumber },
-          "",
-          newUrl.toString()
+      function createTournamentCard(tournament) {
+        const cardClone = document.importNode(cardTemplate.content, true);
+
+        // --- 1. Get all elements ---
+        const articleEl = cardClone.querySelector("article");
+        const img = cardClone.querySelector('[data-js="banner"]');
+        const nameEl = cardClone.querySelector('[data-js="name"]');
+        const dateEl = cardClone.querySelector('[data-js="date"]');
+        const detailEl = cardClone.querySelector('[data-js="detail-url"]');
+        // Get the new main button container
+        const buttonContainer = cardClone.querySelector(
+          '[data-js="button-container"]'
         );
-      } catch (err) {
-        console.error("Failed to fetch tournament page:", err);
-      } finally {
+
+        // --- 2. Style static elements (img, text, detail button) ---
+        if (articleEl) {
+          articleEl.className =
+            "relative bg-transparent rounded-lg overflow-hidden shadow-md transform hover:-translate-y-1 transition";
+          if (!tournament.is_active) {
+            articleEl.classList.add("grayscale", "opacity-75");
+          }
+        }
+        if (img) {
+          img.src = tournament.banner_url || defaultBanner;
+          img.alt = `${tournament.tournament_name} Banner`;
+        }
+        if (nameEl) {
+          nameEl.textContent = safeText(tournament.tournament_name);
+        }
+        if (dateEl) {
+          dateEl.textContent = safeText(tournament.tournament_date);
+        }
+        if (detailEl) {
+          if (tournament.detail_url) {
+            detailEl.href = tournament.detail_url;
+          } else if (tournament.id) {
+            detailEl.href = `/tournaments/${tournament.id}/`;
+          }
+        }
+
+        // --- 3. Dynamically build the action button row ---
+
+        // We need these flags to decide which buttons to build
+        // Ensure we also respect authentication for client-rendered cards
+        const canRegister = tournament.is_active && userIsAuthenticated;
+        const canEditDelete =
+          userIsAdmin ||
+          (userIsOrganizer && tournament.organizer_id === currentUserId);
+
+        // Only create the action row if at least one of these buttons is needed
+        if ((canRegister || canEditDelete) && buttonContainer) {
+          // A. Create the 'flex' row container
+          const actionRow = document.createElement("div");
+          actionRow.className = "flex items-center gap-2";
+
+          // B. Create Delete button (if allowed)
+          if (canEditDelete) {
+            const deleteLink = document.createElement("a");
+            deleteLink.href = `/tournaments/${tournament.id}/delete/`;
+            deleteLink.className =
+              "flex-1 text-center text-sm bg-red-600 text-white font-['Montserrat'] px-4 py-1 rounded-full font-semibold hover:bg-red-700 transition";
+            deleteLink.textContent = "Delete";
+            actionRow.appendChild(deleteLink);
+          }
+
+          // C. Create Daftar button (if allowed)
+          // We check this *after* Delete to get your requested order
+          if (canRegister) {
+            const registerBtn = document.createElement("button");
+            registerBtn.type = "button";
+            registerBtn.dataset.tournamentId = tournament.id;
+            registerBtn.dataset.js = "register-btn"; // for event delegation
+            registerBtn.className =
+              "flex-1 text-center font-['Montserrat'] px-4 py-1 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition font-semibold";
+            registerBtn.textContent = "Daftar";
+            actionRow.appendChild(registerBtn);
+          }
+
+          // D. Create Edit button (if allowed)
+          if (canEditDelete) {
+            const editLink = document.createElement("a");
+            editLink.href = `/tournaments/${tournament.id}/update/`;
+            editLink.className =
+              "flex-1 text-center text-sm bg-yellow-500 text-white font-['Montserrat'] px-4 py-1 rounded-full font-semibold hover:bg-yellow-600 transition";
+            editLink.textContent = "Edit";
+            actionRow.appendChild(editLink);
+          }
+
+          // E. Add the new row (with all its buttons) to the card
+          buttonContainer.appendChild(actionRow);
+        }
+
+        // --- 4. Remove old register button logic ---
+        // (It is now handled above)
+        const oldRegisterEl = cardClone.querySelector(
+          '[data-js="register-btn"]'
+        );
+        if (oldRegisterEl) {
+          // If the template has a 'Daftar' button, remove it
+          // because our new logic builds it in the correct place.
+          oldRegisterEl.remove();
+        }
+
+        return cardClone;
+      }
+
+      // Render the tournament grid from API data (replaces existing items)
+      function renderTournamentsFromData(data) {
+        // clear existing
+        tournamentGrid.innerHTML = "";
+        for (const t of data.tournaments || []) {
+          tournamentGrid.appendChild(createTournamentCard(t));
+        }
+
+        // Update next/prev button dataset values and visibility
+        if (prevButton) {
+          if (data.previous_page) {
+            prevButton.dataset.prevPage = String(data.previous_page);
+            prevButton.href = `?page=${data.previous_page}`;
+            prevButton.classList.remove("hidden");
+          } else {
+            prevButton.classList.add("hidden");
+          }
+        }
+
         if (nextButton) {
-          nextButton.disabled = false;
+          if (data.has_next) {
+            const np =
+              data.next_page !== undefined && data.next_page !== null
+                ? data.next_page
+                : Number(data.page) + 1;
+            nextButton.dataset.nextPage = String(np);
+            nextButton.classList.remove("hidden");
+            nextButton.disabled = false;
+            nextButton.textContent = "Next >"; // This resets the text
+          } else {
+            nextButton.classList.add("hidden");
+          }
         }
       }
-    }
-
-    // Wire Prev and Next to use AJAX navigation if present
-    if (prevButton) {
-      prevButton.addEventListener("click", (ev) => {
+      // Event delegation for register buttons rendered server-side (and any future ones)
+      document.body.addEventListener("click", function (ev) {
+        const btn = ev.target.closest('[data-js="register-btn"]');
+        if (!btn) return;
+        // Navigate to the registration creation endpoint.
+        // If the server-rendered element has an href (we render anchors), prefer it.
         ev.preventDefault();
-        const p =
-          prevButton.dataset.prevPage || prevButton.href?.split("page=")?.[1];
-        if (p) fetchAndRenderPage(p);
+        const href = btn.href || null;
+        const tid = btn.dataset.tournamentId || null;
+        try {
+          if (href) {
+            globalThis.location.href = href;
+          } else if (tid) {
+            // use the tournament_registration app prefix ('team/')
+            globalThis.location.href = `/team/create/${tid}`;
+          }
+        } catch (error_) {
+          console.error("Delegated navigation to registration failed", error_);
+        }
       });
-    }
 
-    if (nextButton) {
-      nextButton.addEventListener("click", (ev) => {
-        ev.preventDefault();
-        const p = nextButton.dataset.nextPage;
-        if (p) fetchAndRenderPage(p);
+      // --- ADD STYLING FOR FILTER BUTTONS ---
+      const style = document.createElement("style");
+      style.textContent = `
+      .game-filter-btn {
+        opacity: 0.6;
+        transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+      }
+      .game-filter-btn:hover { opacity: 1; transform: scale(1.05); }
+      .game-filter-btn.active-filter { opacity: 1; transform: scale(1.05); box-shadow: 0 0 15px rgba(255, 255, 255, 0.7); border-radius: 8px; }
+    `;
+      document.head.appendChild(style);
+
+      async function fetchAndRenderPage(pageNumber) {
+        if (!pageNumber) return;
+        // update UI
+        if (nextButton) {
+          nextButton.disabled = true;
+          nextButton.textContent = "Loading...";
+        }
+
+        try {
+          // --- BUG FIX: Changed 'const' to 'let' ---
+          let url = `/api/tournaments/?page=${encodeURIComponent(pageNumber)}`;
+
+          if (currentGameFilter) {
+            url += `&game_name=${encodeURIComponent(currentGameFilter)}`;
+          }
+
+          const response = await fetch(url, {
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+
+          renderTournamentsFromData(data);
+
+          // update history (so back button works and direct links possible)
+          const newUrl = new URL(globalThis.location.href);
+          newUrl.searchParams.set("page", String(data.page || pageNumber));
+
+          if (currentGameFilter) {
+            newUrl.searchParams.set("game_name", currentGameFilter);
+          } else {
+            newUrl.searchParams.delete("game_name");
+          }
+
+          globalThis.history.pushState(
+            { page: data.page || pageNumber, game: currentGameFilter }, // Add game to state
+            "",
+            newUrl.toString()
+          );
+        } catch (err) {
+          console.error("Failed to fetch tournament page:", err);
+        } finally {
+          // This block runs even if the fetch fails,
+          // so we must reset the button text if it's not hidden.
+          if (nextButton) {
+            nextButton.disabled = false;
+            if (!nextButton.classList.contains("hidden")) {
+              nextButton.textContent = "Next >";
+            }
+          }
+        }
+      }
+
+      // --- ADD THIS BLOCK FOR FILTERING ---
+      let currentGameFilter = ""; // "" means "Show All"
+      const filterButtons = document.querySelectorAll(".game-filter-btn");
+
+      filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          // 1. Get the game name from the data attribute
+          currentGameFilter = button.dataset.gameName;
+
+          // 2. Update the visual "active" state
+          filterButtons.forEach((btn) => btn.classList.remove("active-filter"));
+          button.classList.add("active-filter");
+
+          // 3. Fetch page 1 with the new filter
+          fetchAndRenderPage(1);
+        });
       });
-    }
 
-    // Handle back/forward browser navigation
-    globalThis.addEventListener("popstate", (ev) => {
-      const page =
-        (ev.state && ev.state.page) ||
-        new URL(globalThis.location.href).searchParams.get("page") ||
-        1;
-      fetchAndRenderPage(page);
+      // Wire Prev and Next to use AJAX navigation if present
+      if (prevButton) {
+        prevButton.addEventListener("click", (ev) => {
+          ev.preventDefault();
+          const p =
+            prevButton.dataset.prevPage || prevButton.href?.split("page=")?.[1];
+          if (p) fetchAndRenderPage(p);
+        });
+      }
+
+      if (nextButton) {
+        nextButton.addEventListener("click", (ev) => {
+          ev.preventDefault();
+          const p = nextButton.dataset.nextPage;
+          if (p) fetchAndRenderPage(p);
+        });
+      }
+
+      // Handle back/forward browser navigation
+      globalThis.addEventListener("popstate", (ev) => {
+        const params = new URLSearchParams(window.location.search);
+        const page = (ev.state && ev.state.page) || params.get("page") || 1;
+
+        // --- BUG FIX: This logic must run BEFORE the fetch ---
+        const game =
+          (ev.state && ev.state.game) || params.get("game_name") || "";
+        currentGameFilter = game;
+
+        filterButtons.forEach((btn) => {
+          btn.classList.toggle(
+            "active-filter",
+            btn.dataset.gameName === currentGameFilter
+          );
+        });
+        // --- END FIX ---
+
+        fetchAndRenderPage(page); // Now fetch with the correct filter
+      });
     });
-  });
-</script>
-
+  </script>
 </main>
 {% include 'footer.html' %} {% endblock %}

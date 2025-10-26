@@ -5,8 +5,8 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.conf import settings
 from user_account.models import UserAccount
-
 
 class Game(models.Model):
     """
@@ -81,15 +81,18 @@ class Tournament(models.Model):
     # PK ID (UUID4)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    # One organizer can have many tournaments
+    # Organizer (user who created the tournament)
     organizer = models.ForeignKey(
         UserAccount,
-        on_delete=models.CASCADE,  # Prevent deletion of organizer if they have tournaments
+        on_delete=models.CASCADE, 
         related_name='organized_tournaments',
         verbose_name=_("Organizer"),
-        limit_choices_to={'role': ['organizer', 'admin']}  # both admin and organizer can create tournament
+        limit_choices_to={'role': ['organizer', 'admin']},
+        null=True,
+        blank=True,
     )
-    objects = TournamentManager()  # Tell Tournament to use our new manager
+    objects = TournamentManager()  # Custom manager that annotates is_active
+    
 
     # FK tournament_format.id
     tournament_format = models.ForeignKey(
