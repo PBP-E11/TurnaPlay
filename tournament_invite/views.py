@@ -80,10 +80,33 @@ def invite_list(request: HttpRequest) -> HttpResponse:
     incoming = incoming.filter(status_filter).order_by("-created_at")
     outgoing = outgoing.filter(status_filter).order_by("-created_at")
 
+    leader_teams = (
+        TournamentRegistration.objects
+        .filter(
+            members__game_account__user=request.user,
+            members__is_leader=True,
+        )
+        .select_related(
+            "tournament",
+            "tournament__tournament_format",
+            "tournament__tournament_format__game",
+        )
+        .distinct()
+    )
+
+    user_game_accounts = (
+        GameAccount.objects
+        .filter(user=request.user, active=True)
+        .select_related("game")
+        .order_by("game__name", "ingame_name")
+    )
+
     context = {
         "incoming": incoming,
         "outgoing": outgoing,
         "status": status or "all",
+        "leader_teams": leader_teams,
+        "game_accounts": user_game_accounts,
     }
     return render(request, "tournament_invite/invite_list.html", context)
 
@@ -95,18 +118,26 @@ def create_invite(request: HttpRequest) -> HttpResponse:
         messages.error(request, "Invalid method.")
         return redirect("tournament_invite:invite-list")
 
-    user_id = request.POST.get("user_id")
+    user_query = request.POST.get("username_or_email")
     reg_id = request.POST.get("registration_id")
 
-    if not user_id or not reg_id:
+    if not user_query or not reg_id:
         messages.error(request, "Missing parameters.")
         return redirect("tournament_invite:invite-list")
 
-    user_to_invite = get_object_or_404(UserAccount, pk=user_id)
+    user_to_invite = (
+    UserAccount.objects.filter(username__iexact=user_query).first()
+    or UserAccount.objects.filter(email__iexact=user_query).first()
+    )
+    if not user_to_invite:
+        messages.error(request, "User not found.")
+        return redirect("tournament_invite:invite-list")
     team = get_object_or_404(TournamentRegistration, pk=reg_id)
 
     # permission: hanya leader tim
-    if not _is_leader(request.user, team):
+    if not TeamMember.objects.filter(
+        team=team, is_leader=True, game_account__user=request.user
+    ).exists():
         raise PermissionDenied("Only team leader can invite.")
 
     # tidak boleh mengundang diri sendiri

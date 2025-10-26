@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block content %}
+{% include "navbar.html" %}
 
 <!-- HERO -->
 <section class="bg-gradient-to-r from-indigo-600 to-purple-600">
@@ -9,174 +11,435 @@
       Tournament Invites
     </h1>
     <p class="mt-3 text-white/80 text-sm md:text-base">
-      Kelola undangan turnamen yang kamu terima sebagai anggota maupun yang kamu kirim sebagai leader.
+      Kelola undangan turnamen yang kamu terima sebagai anggota maupun kamu kirim sebagai leader.
     </p>
   </div>
 </section>
 
-<!-- CARD WRAP -->
-<div class="max-w-6xl mx-auto px-6 -mt-12 pb-16 relative z-10">
-  <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-
-    <!-- HEADER -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-8">
+<!-- CARD SECTION -->
+<section class="max-w-6xl mx-auto px-6 -mt-14 pb-16 relative z-10">
+  <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl ring-1 ring-black/5 p-6 md:p-8">
+    <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
       <div class="flex items-center gap-3">
         <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-indigo-100 text-indigo-600">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1h1a1 1 0 1 1 0 2h-1a5 5 0 0 1-4.58 4.98A6 6 0 0 1 13 16.92V19h3a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h3v-2.08A6 6 0 0 1 7.58 14.98 5 5 0 0 1 3 9H2a1 1 0 0 1 0-2h1V6Zm2 2v1a3 3 0 0 0 2.65 2.98A6 6 0 0 1 12 13a6 6 0 0 1 3.35-1.02A3 3 0 0 0 18 9V8H6Z"/>
+            <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1h1a1 1 0 0 1 0 2h-1v2h1a1 1 0 0 1 0 2h-1v2h1a1 1 0 0 1 0 2h-1v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1H3a1 1 0 1 1 0-2h1v-2H3a1 1 0 1 1 0-2h1V9H3a1 1 0 1 1 0-2h1V6Zm3 2v8h10V8H7Z"/>
           </svg>
         </span>
         <h2 class="text-2xl font-semibold text-gray-800">Undangan</h2>
       </div>
 
-      <!-- FILTER -->
-      <div class="relative" x-data="{open:false, val:'{{ status|default:'all' }}'}">
-        <label class="sr-only">Filter status</label>
-        <button type="button"
-                onclick="this.nextElementSibling.classList.toggle('hidden')"
-                class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition">
-          <span id="status-label">
+      <!-- Status filter -->
+      <div class="relative">
+        <label for="statusSelect" class="sr-only">Filter status</label>
+        <select id="statusSelect"
+                class="hidden appearance-none bg-white text-gray-700 text-sm md:text-base rounded-xl border border-gray-200 px-4 py-2 pr-9 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition"
+                onchange="onChangeStatus(this.value)">
+          <option value="all" {% if status == 'all' %}selected{% endif %}>Semua</option>
+          <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+          <option value="accepted" {% if status == 'accepted' %}selected{% endif %}>Accepted</option>
+          <option value="rejected" {% if status == 'rejected' %}selected{% endif %}>Rejected</option>
+        </select>
+
+        <!-- Custom dropdown -->
+        <button id="filterBtn"
+                type="button"
+                class="inline-flex items-center gap-2 bg-white text-gray-700 text-sm md:text-base rounded-xl border border-gray-200 px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+          <span id="filterLabel">
             {% if status == 'pending' %}Pending{% elif status == 'accepted' %}Accepted{% elif status == 'rejected' %}Rejected{% else %}Semua{% endif %}
           </span>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.127l3.71-3.896a.75.75 0 111.08 1.04l-4.24 4.46a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/>
           </svg>
         </button>
+        <div id="filterMenu"
+             class="hidden absolute right-0 mt-2 w-40 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden">
+          <button data-v="all"      class="w-full text-left px-4 py-2 text-sm hover:bg-indigo-50">Semua</button>
+          <button data-v="pending"  class="w-full text-left px-4 py-2 text-sm hover:bg-indigo-50">Pending</button>
+          <button data-v="accepted" class="w-full text-left px-4 py-2 text-sm hover:bg-indigo-50">Accepted</button>
+          <button data-v="rejected" class="w-full text-left px-4 py-2 text-sm hover:bg-indigo-50">Rejected</button>
+        </div>
+      </div> 
 
-        <!-- MENU -->
-        <div class="absolute right-0 mt-2 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/5 overflow-hidden hidden z-20">
-          <form id="filter-form" method="get">
-            <input type="hidden" name="status" id="status-input" value="{{ status|default:'all' }}">
-            <ul class="py-1 text-sm">
-              <li><button type="button" data-value="all"
-                         class="w-full text-left px-3 py-2 hover:bg-indigo-50">Semua</button></li>
-              <li><button type="button" data-value="pending"
-                         class="w-full text-left px-3 py-2 hover:bg-indigo-50">Pending</button></li>
-              <li><button type="button" data-value="accepted"
-                         class="w-full text-left px-3 py-2 hover:bg-indigo-50">Accepted</button></li>
-              <li><button type="button" data-value="rejected"
-                         class="w-full text-left px-3 py-2 hover:bg-indigo-50">Rejected</button></li>
-            </ul>
+      <!-- Add Invite: trigger -->
+      <button id="btnAddInvite"
+              style="padding:10px 16px;border:none;border-radius:9999px;background:#4f46e5;color:#fff;font-weight:600;box-shadow:0 8px 20px rgba(79,70,229,.25);cursor:pointer;margin-left:12px">
+        + Add Invite
+      </button>
+
+      <!-- Add Invitation Modal -->
+      <div id="addInviteModal" class="hidden fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-black/40" data-close-modal></div>
+        <div class="relative mx-auto my-8 w-[560px] max-w-[92%] rounded-2xl bg-white shadow-xl">
+          <div class="flex items-center justify-between px-6 py-5">
+            <h3 class="text-xl font-semibold">Add Invitation</h3>
+            <button type="button" class="p-1 rounded-md hover:bg-slate-100" data-close-modal aria-label="Close">✕</button>
+          </div>
+
+          <form method="post" action="{% url 'tournament_invite:create-invite' %}" class="px-6 pb-6 space-y-4">
+            {% csrf_token %}
+
+            <div>
+              <label for="invite-username" class="block text-sm font-medium mb-2">Username atau Email penerima</label>
+              <input id="invite-username" name="username_or_email" type="text" required
+                    placeholder="mis. rekkafs atau john@example.com"
+                    class="w-full rounded-xl border border-slate-200 px-4 py-2.5 focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400">
+            </div>
+
+            <div>
+              <label for="invite-team" class="block text-sm font-medium mb-2">Tim kamu</label>
+              <select id="invite-team" name="registration_id" required
+                      class="w-full rounded-xl border border-slate-200 px-4 py-2.5 bg-white focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400">
+                <option value="" disabled selected>Pilih tim yang kamu pimpin…</option>
+                {% for t in leader_teams %}
+                  <option value="{{ t.id }}">
+                    {{ t.tournament.tournament_name }} — {{ t.team_name|default:"(No name)" }}
+                  </option>
+                {% empty %}
+                  <option value="" disabled>Tidak ada tim yang kamu pimpin.</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+              <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50" data-close-modal>
+                Batal
+              </button>
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700">
+                Kirim
+              </button>
+            </div>
+
+            <div class="mt-3 rounded-xl bg-indigo-50 text-indigo-700 text-xs px-3 py-2">
+              Hanya leader tim yang bisa mengirim undangan.
+            </div>
           </form>
         </div>
       </div>
+
     </div>
 
-    <!-- LISTS -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <!-- Incoming -->
-      <section>
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="font-semibold text-gray-800 text-lg">Incoming</h3>
-          <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
-            {% if incoming %}{{ incoming|length }} invites{% else %}0 invites{% endif %}
-          </span>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+      <!-- Card: Incoming -->
+      <div class="rounded-2xl border border-dashed border-gray-200 p-4 md:p-6 bg-white">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-800">Incoming</h3>
+          <span class="text-xs md:text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{{ incoming|length }} invites</span>
         </div>
 
         {% if incoming %}
-          <ul class="space-y-3">
+          <ul class="space-y-4">
             {% for inv in incoming %}
-              <li class="group border rounded-xl p-4 hover:shadow-md transition border-gray-200">
-                <div class="flex items-start justify-between gap-4">
-                  <div class="min-w-0">
-                    <p class="font-medium text-gray-800">
-                      {{ inv.tournament_registration.team_name }}
-                      <span class="text-gray-400">•</span>
-                      {{ inv.tournament_registration.tournament.tournament_name }}
-                    </p>
-                    <p class="text-sm text-gray-500 mt-1">
-                      {{ inv.tournament_registration.tournament.tournament_format.name }}
-                    </p>
+              <li class="p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div class="flex items-start gap-4">
+                  <div class="shrink-0 w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-semibold">
+                    {{ inv.tournament_registration.tournament.tournament_format.game.name|first|upper }}
                   </div>
-                  <div>
-                    {% if inv.status == 'pending' %}
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">Pending</span>
-                    {% elif inv.status == 'accepted' %}
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Accepted</span>
-                    {% else %}
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">Rejected</span>
-                    {% endif %}
+                  <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-x-2 text-sm md:text-base">
+                      <span class="font-medium text-gray-900">{{ inv.tournament_registration.team_name }}</span>
+                      <span class="text-gray-400">·</span>
+                      <span class="text-gray-700">{{ inv.tournament_registration.tournament.tournament_name }}</span>
+                    </div>
+                    <div class="mt-1 text-xs text-gray-500">
+                      {{ inv.tournament_registration.tournament.tournament_format.game.name }} ·
+                      {{ inv.tournament_registration.tournament.tournament_format.name }}
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      <button
+                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 text-white text-sm px-3 py-2 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 btn-accept"
+                        data-invite="{{ inv.id }}"
+                        onclick="openGameAccountModal('{{ inv.id }}','{{ inv.tournament_registration.tournament.tournament_format.game.id }}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7v2H3a1 1 0 0 0 0 2h2v2a7 7 0 0 0 14 0v-2h2a1 1 0 1 0 0-2h-2V9a7 7 0 0 0-7-7Zm5 9v2a5 5 0 0 1-10 0v-2h10Z"/></svg>
+                        Accept
+                      </button>
+                      <button
+                        class="inline-flex items-center gap-2 rounded-lg bg-white text-red-600 border border-red-200 text-sm px-3 py-2 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200"
+                        onclick="rejectInvite('{{ inv.id }}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6.225 4.811A1 1 0 0 1 7.64 3.396L12 7.757l4.36-4.36a1 1 0 1 1 1.415 1.415L13.415 9.17l4.36 4.36a1 1 0 1 1-1.415 1.414L12 10.586l-4.36 4.359a1 1 0 0 1-1.415-1.414l4.36-4.36-4.36-4.36Z"/></svg>
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                  <div class="shrink-0">
+                    <span class="inline-flex items-center text-xs px-2 py-1 rounded-full bg-yellow-50 text-yellow-700 border border-yellow-200">
+                      {{ inv.status|title }}
+                    </span>
                   </div>
                 </div>
               </li>
             {% endfor %}
           </ul>
         {% else %}
-          <div class="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 bg-gray-50">
+          <div class="h-[120px] rounded-xl border border-gray-100 grid place-content-center text-gray-500 text-sm bg-gray-50/60">
             Tidak ada undangan masuk.
           </div>
         {% endif %}
-      </section>
+      </div>
 
-      <!-- Outgoing -->
-      <section>
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="font-semibold text-gray-800 text-lg">Outgoing</h3>
-          <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
-            {% if outgoing %}{{ outgoing|length }} invites{% else %}0 invites{% endif %}
-          </span>
+      <!-- Card: Outgoing -->
+      <div class="rounded-2xl border border-dashed border-gray-200 p-4 md:p-6 bg-white">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-800">Outgoing</h3>
+          <span class="text-xs md:text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{{ outgoing|length }} invites</span>
         </div>
 
         {% if outgoing %}
-          <ul class="space-y-3">
+          <ul class="space-y-4">
             {% for inv in outgoing %}
-              <li class="group border rounded-xl p-4 hover:shadow-md transition border-gray-200">
-                <div class="flex items-start justify-between gap-4">
-                  <div class="min-w-0">
-                    <p class="font-medium text-gray-800">
-                      To: {{ inv.user_account.display_name }} (@{{ inv.user_account.username }})
-                    </p>
-                    <p class="text-sm text-gray-500 mt-1">
-                      {{ inv.tournament_registration.team_name }}
-                      <span class="text-gray-400">•</span>
-                      {{ inv.tournament_registration.tournament.tournament_name }}
-                    </p>
+              <li class="p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div class="flex items-start gap-4">
+                  <div class="shrink-0 w-10 h-10 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center font-semibold">
+                    {{ inv.tournament_registration.tournament.tournament_format.game.name|first|upper }}
                   </div>
-                  <div>
-                    {% if inv.status == 'pending' %}
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">Pending</span>
-                    {% elif inv.status == 'accepted' %}
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Accepted</span>
-                    {% else %}
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">Rejected</span>
-                    {% endif %}
+                  <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-x-2 text-sm md:text-base">
+                      <span class="font-medium text-gray-900">{{ inv.user_account.username }}</span>
+                      <span class="text-gray-400">·</span>
+                      <span class="text-gray-700">{{ inv.tournament_registration.team_name }}</span>
+                      <span class="text-gray-400">·</span>
+                      <span class="text-gray-700">{{ inv.tournament_registration.tournament.tournament_name }}</span>
+                    </div>
+                    <div class="mt-1 text-xs text-gray-500">
+                      {{ inv.tournament_registration.tournament.tournament_format.game.name }} ·
+                      {{ inv.tournament_registration.tournament.tournament_format.name }}
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      <button
+                        class="inline-flex items-center gap-2 rounded-lg bg-white text-gray-700 border border-gray-200 text-sm px-3 py-2 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                        onclick="cancelInvite('{{ inv.id }}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6.225 4.811A1 1 0 0 1 7.64 3.396L12 7.757l4.36-4.36a1 1 0 1 1 1.415 1.415L13.415 9.17l4.36 4.36a1 1 0 1 1-1.415 1.414L12 10.586l-4.36 4.359a1 1 0 0 1-1.415-1.414l4.36-4.36-4.36-4.36Z"/></svg>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                  <div class="shrink-0">
+                    <span class="inline-flex items-center text-xs px-2 py-1 rounded-full
+                      {% if inv.status == 'accepted' %} bg-green-50 text-green-700 border border-green-200
+                      {% elif inv.status == 'rejected' %} bg-red-50 text-red-700 border border-red-200
+                      {% else %} bg-yellow-50 text-yellow-700 border border-yellow-200 {% endif %}">
+                      {{ inv.status|title }}
+                    </span>
                   </div>
                 </div>
               </li>
             {% endfor %}
           </ul>
         {% else %}
-          <div class="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 bg-gray-50">
+          <div class="h-[120px] rounded-xl border border-gray-100 grid place-content-center text-gray-500 text-sm bg-gray-50/60">
             Tidak ada undangan keluar.
           </div>
         {% endif %}
-      </section>
+      </div>
     </div>
+  </div>
+</section>
+
+<!-- Helper text -->
+<div class="mt-8 mb-16">
+  <div class="text-center">
+    {% include 'tournament_invite/_choose_game_account.html' %}
   </div>
 </div>
 
+{% include "tournament_invite/_toast_poll.html" %}
+
+<style>
+  #statusSelect { box-shadow: 0 1px 2px rgb(0 0 0 / 0.04); }
+  #statusSelect:focus { outline: none; }
+</style>
+
 <script>
-  // opsi dropdown
-  document.querySelectorAll('[data-value]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const val = btn.getAttribute('data-value');
-      document.getElementById('status-input').value = val;
-      document.getElementById('status-label').textContent =
-        val === 'pending' ? 'Pending' :
-        val === 'accepted' ? 'Accepted' :
-        val === 'rejected' ? 'Rejected' : 'Semua';
-      // submit
-      document.getElementById('filter-form').submit();
-    });
-  });
-  // tutup menu saat klik di luar
-  document.addEventListener('click', (e) => {
-    const toggle = document.querySelector('[type="button"]+div');
-    const trigger = document.querySelector('[type="button"]');
-    if (!toggle || !trigger) return;
-    if (!toggle.contains(e.target) && !trigger.contains(e.target)) {
-      toggle.classList.add('hidden');
+  function onChangeStatus(val) {
+    const url = new URL(window.location.href);
+    if (val === 'all') {
+      url.searchParams.delete('status');
+    } else {
+      url.searchParams.set('status', val);
     }
+    window.location.assign(url.toString());
+  }
+
+  function getCSRFToken() {
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? m[1] : '';
+  }
+
+  function openGameAccountModal(inviteId, gameId) {
+    const modal = document.getElementById('chooseGameAccountModal');
+    const form = document.getElementById('chooseGameAccountForm');
+    form.dataset.inviteId = inviteId;
+    form.dataset.gameId = gameId;
+    modal.classList.remove('hidden');
+  }
+  function closeGameAccountModal() {
+    document.getElementById('chooseGameAccountModal').classList.add('hidden');
+  }
+
+  document.addEventListener('submit', async (e) => {
+    if (e.target?.id !== 'chooseGameAccountForm') return;
+    e.preventDefault();
+    const form = e.target;
+    const inviteId = form.dataset.inviteId;
+    const gaId = form.querySelector('input[name="game_account_id"]:checked')?.value;
+    if (!gaId) { alert('Pilih salah satu game account.'); return; }
+
+    const res = await fetch("{% url 'tournament_invite:api-accept' %}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+      body: JSON.stringify({ invite_id: inviteId, game_account_id: gaId })
+    });
+    if (res.ok) { window.location.reload(); }
+    else {
+      const data = await res.json().catch(()=>({error:'Failed'}));
+      alert(data.error || 'Gagal memproses.');
+    }
+  });
+
+  async function rejectInvite(inviteId) {
+    if (!confirm('Tolak undangan ini?')) return;
+    const res = await fetch("{% url 'tournament_invite:api-reject' %}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+      body: JSON.stringify({ invite_id: inviteId })
+    });
+    if (res.ok) window.location.reload();
+    else alert('Gagal menolak undangan.');
+  }
+
+  async function cancelInvite(inviteId) {
+    if (!confirm('Batalkan undangan ini?')) return;
+    const res = await fetch("{% url 'tournament_invite:api-cancel' %}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+      body: JSON.stringify({ invite_id: inviteId })
+    });
+    if (res.ok) window.location.reload();
+    else alert('Gagal membatalkan undangan.');
+  }
+
+  // --- Custom dropdown behaviour ---
+  (function () {
+    const btn = document.getElementById('filterBtn');
+    const menu = document.getElementById('filterMenu');
+    const label = document.getElementById('filterLabel');
+    const hiddenSelect = document.getElementById('statusSelect');
+
+    function close() { menu.classList.add('hidden'); }
+    function toggle() { menu.classList.toggle('hidden'); }
+
+    btn.addEventListener('click', toggle);
+    document.addEventListener('click', (e) => {
+      if (!btn.contains(e.target) && !menu.contains(e.target)) close();
+    });
+
+    menu.querySelectorAll('button[data-v]').forEach(b => {
+      b.addEventListener('click', () => {
+        const v = b.getAttribute('data-v');
+        label.textContent = b.textContent.trim();
+        hiddenSelect.value = v;
+        close();
+        onChangeStatus(v);
+      });
+    });
+  })();
+</script>
+
+<script>
+  (function () {
+    const modal = document.getElementById('addInviteModal');
+    const openBtn = document.getElementById('btnAddInvite');
+
+    if (!modal || !openBtn) return;
+
+    openBtn.addEventListener('click', () => {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target.hasAttribute('data-close-modal')) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    });
+  })();
+</script>
+
+<script>
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  // --- Open modal when clicking Accept
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-accept');
+    if (!btn) return;
+    const inviteId = btn.dataset.invite;
+    if (!inviteId) return;
+
+    const hidden = document.getElementById('acceptInviteId');
+    if (hidden) hidden.value = inviteId;
+
+    // bukaan modal
+    document.getElementById('chooseGameAccountModal')?.classList.remove('hidden');
+  });
+
+  // --- Submit Accept
+  document.getElementById('btnSubmitAccept')?.addEventListener('click', async () => {
+    const gaSelect = document.getElementById('gameAccountSelect');   // id select di _choose_game_account.html
+    const inviteId = document.getElementById('acceptInviteId')?.value;
+
+    const gameAccountId = gaSelect?.value;
+    if (!inviteId || !gameAccountId) {
+      alert('Pilih game account terlebih dahulu.');
+      return;
+    }
+
+    try {
+      const res = await fetch("{% url 'tournament_invite:api-accept' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken,
+        },
+        body: JSON.stringify({
+          invite_id: inviteId,
+          game_account_id: gameAccountId
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        alert(data?.error || 'Gagal menerima undangan.');
+        return;
+      }
+
+      // tutup modal + refresh
+      document.getElementById('chooseGameAccountModal')?.classList.add('hidden');
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert('Terjadi masalah jaringan.');
+    }
+  });
+
+  // --- Close modal
+  document.getElementById('btnCloseAccept')?.addEventListener('click', () => {
+    document.getElementById('chooseGameAccountModal')?.classList.add('hidden');
+  });
+  document.getElementById('btnCancelAccept')?.addEventListener('click', () => {
+    document.getElementById('chooseGameAccountModal')?.classList.add('hidden');
   });
 </script>
 

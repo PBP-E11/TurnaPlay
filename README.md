@@ -16,7 +16,7 @@ Tujuan utama TurnaPlay adalah menghemat waktu para gamers sekaligus membantu pen
 ## Daftar Modul
 Semua operasi CRUD hanya dapat dilakukan oleh pengguna yang sudah login sesuai hak aksesnya (atau admin), kecuali jika ditandai (dengan garis bawah/underscore). Fields hanyalah deskripsi singkat sebagian data penting dan bagaimana interaksi antar modul.
 
-### 1. Competition
+### 1. Tournament
 * **Create**: membuat kompetisi. _admin only_
 * **Read**: membaca info publik kompetisi (tanggal mulai, hadiah, dll).
 * **Update**: memperbarui info kompetisi. _admin only_
@@ -30,7 +30,7 @@ Semua operasi CRUD hanya dapat dilakukan oleh pengguna yang sudah login sesuai h
 * **Delete**: menghapus profil/akun (mark as inactive).
 * **Fields**: PK id, site\_username UNIQUE jika aktif, email UNIQUE jika aktif, password, display\_name, active.
 
-### 3. Account
+### 3. Game Account
 * **Create**: membuat akun (game category, ingame name)
 * **Read**: membaca akun _public access_
 * **Update**: - (disabled, tidak dapat diubah, harus hapus dan buat baru)
@@ -38,24 +38,24 @@ Semua operasi CRUD hanya dapat dilakukan oleh pengguna yang sudah login sesuai h
 * **Fields**: PK id, FK user.id, game\_category, ingame\_name, active
 * **Constraint**: (game\_category, ingame\_name) UNIQUE jika aktif
 
-### 4. Competition Invite
+### 4. Tournament Invite
 * **Create**: mengundang pengguna untuk bergabung dalam kompetisi
 * **Read**: melihat detail invite (kompetisi terkait, anggota tim, kapten)
 * **Update**: menerima atau menolak invite
 * **Delete**: membatalkan invite
-* **Fields**: PK id, FK user.id, FK competition\_id, status
+* **Fields**: PK id, FK user.id, FK tournament\_id, status
 
-### 5. Team-member (tied to competition_registration and user account)
+### 5. Team-member (terikat many-to-many tournament\_registration dan user account)
 * **Create**: menambahkan akun ke tim
-* **Read**: melihat anggota tim (public)
+* **Read**: melihat anggota tim ~~(public)~~
 * **Update**: -
 * **Delete**: mengeluarkan akun dari tim
-* **Fields**: PK id, FK account.id, FK competition\_registration.id
+* **Fields**: PK id, FK account.id, FK tournament\_registration.id
 
-### 6. Competition Registration/Team Detail
+### 6. Tournament Registration/Team Detail
 * **Create**: membuat tim saat registration
 * **Read**: menampilkan detail tim dan kredensial
-* **Update**: mengedit detail tim, misalnya invite anggota
+* **Update**: mengedit detail tim, misalnya ~~invite anggota~~ nama tim
 * **Delete**: membatalkan pendaftaran kompetisi dan membubarkan tim
 * **Fields**: PK id, status (valid atau tidak)
 
@@ -71,9 +71,9 @@ Pada app TurnaPlay, akan tersedia beberapa role yang membantu kelancaran aplikas
 User merupakan role untuk para pengguna yang mendaftarkan diri untuk masuk ke turnamen.
 Suatu hal yang harus diperhatikan disini adalah untuk turnamen kelompok; pendaftaran pada suatu turnamen dilakukan oleh leader.
 Leader di sini akan mendaftarkan meng-invite anggota tim, di mana masing-masing anggota dapat menerima atau menolak invite bergabung ke dalam tim.
-Masing-masing anggota mendaftarkan kredensial akun (seperti nomor kontak dan email) serta detail akun ingame (seperti ingame name) khusus game tersebut.
+Masing-masing anggota mendaftarkan ~~kredensial akun (seperti nomor kontak dan email) serta~~ detail akun ingame (seperti ingame name) khusus game tersebut.
 eader dapat pula membatalkan invite ataupun mengganti anggota tim sebelum dimulainya kompetisi.
-Setelah semua anggota menerima invite, status tim akan menjadi valid dan tim berhasil didaftarkan.
+~~Setelah semua anggota menerima invite, status tim akan menjadi valid dan tim berhasil didaftarkan.~~
 
 ### Organizer
 Merupakan orang/pihak yang menyelenggarakan turnamen.
@@ -93,3 +93,6 @@ https://muhammad-fahri41-turnaplay.pbp.cs.ui.ac.id
 
 ## Link Figma Initial Design
 https://www.figma.com/design/R7C7dbbCmhe6KncDQrMKRT/Web-Info-Tournament--Copy-?node-id=3-744&t=S281cfROHHyTXYQ2-1
+
+## Docs Tim (read only)
+https://docs.google.com/document/d/1mnzAA9KWZdH6hnWeSEl_9PFexwfzSGioa1IBLwMGblY/edit?tab=t.0#heading=h.g2qmew3uh0yq
