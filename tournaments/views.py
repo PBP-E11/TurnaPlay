@@ -3,7 +3,8 @@ from django.urls import reverse
 from django.core.paginator import Paginator
 from .models import Tournament
 from .forms import TournamentCreationForm
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
+from django.contrib.auth.decorators import login_required
 from .models import TournamentFormat
 from django.shortcuts import get_object_or_404
 
@@ -23,37 +24,120 @@ def show_main(request):
     # Compute a safe permission flag for showing the Create button in templates
     user = request.user
     can_create = False
+    user_is_admin = False
+    user_is_organizer = False
+
     if user.is_authenticated:
+        # Check for admin first (is_staff is from your UserAccount model)
         if getattr(user, 'is_staff', False):
             can_create = True
-        else:
-            ua = getattr(user, 'useraccount', None)
-            if ua and getattr(ua, 'role', None) == 'organizer':
-                can_create = True
-            elif getattr(user, 'role', None) == 'organizer':
-                can_create = True
-
+            user_is_admin = True
+        # Check for organizer (is_organizer() is from your UserAccount model)
+        elif hasattr(user, 'is_organizer') and user.is_organizer():
+            can_create = True
+            user_is_organizer = True
+            
     context['can_create'] = can_create
+    
+    context['user_is_admin'] = user_is_admin
+    context['user_is_organizer'] = user_is_organizer
+    context['current_user_id'] = str(user.id) if user.is_authenticated else 'None'
 
     return render(request, "main.html", context)
 
-
+@login_required(login_url='/accounts/login')
 def tournament_create(request):
     """Function-based view to display and process the tournament creation form."""
+
+    # User must be an Admin (is_staff) or an Organizer
+    if not (request.user.is_staff or (hasattr(request.user, 'is_organizer') and request.user.is_organizer())):
+        return HttpResponseForbidden("You do not have permission to create a tournament.")
+  
     if request.method == 'POST':
-        form = TournamentCreationForm(request.POST)
+        # Accept file uploads (banner) via request.FILES
+        form = TournamentCreationForm(request.POST, request.FILES)
         if form.is_valid():
-            # Set the organizer to the current user (assuming the organizer is a User model)
+            # Don't save to DB yet
             tournament = form.save(commit=False)
-            tournament.organizer = request.user  # Assuming 'organizer' is a ForeignKey to the User model
+
+            tournament.organizer = request.user
+            # If a banner file was uploaded, store it using default storage and
+            # write its public URL into the model's banner (a URLField).
+            banner_file = request.FILES.get('banner')
+            if banner_file:
+                from django.core.files.storage import default_storage
+                # build a safe path within MEDIA (e.g. 'banners/<filename>')
+                save_path = f"banners/{banner_file.name}"
+                name = default_storage.save(save_path, banner_file)
+                # default_storage.url() returns a URL that can be used in templates
+                tournament.banner = default_storage.url(name)
+
             tournament.save()
-            # Redirect to main tournament list so the newly created tournament appears
             return redirect(reverse('tournaments:show_main'))
     else:
         form = TournamentCreationForm()
 
     return render(request, 'tournament_form.html', {'form': form, 'title': 'Create New Tournament'})
 
+@login_required
+def tournament_update(request, pk):
+    """View to update an existing tournament."""
+    tournament = get_object_or_404(Tournament, pk=pk)
+
+    # --- PERMISSION CHECK ---
+    is_admin = request.user.is_staff
+    is_organizer = hasattr(request.user, 'is_organizer') and request.user.is_organizer()
+    is_owner = (tournament.organizer == request.user)
+
+    # Allow if user is an Admin OR (is an Organizer AND is the owner)
+    if not (is_admin or (is_organizer and is_owner)):
+        return HttpResponseForbidden("You do not have permission to edit this tournament.")
+    # --- END CHECK ---
+        
+    if request.method == 'POST':
+        # Pass instance=tournament to update the existing object
+        form = TournamentCreationForm(request.POST, request.FILES, instance=tournament)
+        if form.is_valid():
+            t = form.save(commit=False)
+            banner_file = request.FILES.get('banner')
+            if banner_file:
+                from django.core.files.storage import default_storage
+                save_path = f"banners/{banner_file.name}"
+                name = default_storage.save(save_path, banner_file)
+                t.banner = default_storage.url(name)
+            t.save()
+            return redirect(reverse('tournaments:tournament-detail', args=[tournament.pk]))
+    else:
+        # Pre-populate the form with the tournament's existing data
+        form = TournamentCreationForm(instance=tournament)
+
+    # Reuse the same form template
+    return render(request, 'tournament_form.html', {'form': form, 'title': f'Edit {tournament.tournament_name}'})
+
+# --- NEW VIEW ---
+@login_required
+def tournament_delete(request, pk):
+    """View to delete an existing tournament."""
+    tournament = get_object_or_404(Tournament, pk=pk)
+
+    # --- PERMISSION CHECK (Same as update) ---
+    is_admin = request.user.is_staff
+    is_organizer = hasattr(request.user, 'is_organizer') and request.user.is_organizer()
+    is_owner = (tournament.organizer == request.user)
+
+    # Allow if user is an Admin OR (is an Organizer AND is the owner)
+    if not (is_admin or (is_organizer and is_owner)):
+        return HttpResponseForbidden("You do not have permission to delete this tournament.")
+    # --- END CHECK ---
+
+    if request.method == 'POST':
+        # This is the confirmation step
+        tournament.delete()
+        return redirect(reverse('tournaments:show_main'))
+
+    # GET request: show the confirmation page
+    # We need a new template for this: 'tournament_confirm_delete.html'
+    return render(request, 'tournament_confirm_delete.html', {'tournament': tournament})
 
 def tournament_list_json(request):
     """Paginated JSON endpoint for client-side "Next" loading.
@@ -70,6 +154,10 @@ def tournament_list_json(request):
         page_number = 1
 
     tournaments_qs = Tournament.objects.order_by('-tournament_date', 'tournament_name')
+
+    game_name = request.GET.get('game_name', None)
+    if game_name:
+        tournaments_qs = tournaments_qs.filter(tournament_format__game__name__icontains=game_name)
     paginator = Paginator(tournaments_qs, 9)
     page = paginator.get_page(page_number)
 
@@ -81,9 +169,10 @@ def tournament_list_json(request):
             'detail_url': request.build_absolute_uri(reverse('tournaments:tournament-detail', args=[t.pk])),
             'tournament_name': t.tournament_name,
             'tournament_date': t.tournament_date.isoformat() if t.tournament_date else None,
-            # banner may be an ImageField — prefer URL if available
-            'banner_url': (t.banner.url if getattr(t, 'banner', None) and hasattr(t.banner, 'url') else None),
+            # banner stored as a URL string in the model (or empty). Use it if present.
+            'banner_url': (t.banner if getattr(t, 'banner', None) else None),
             'is_active': t.is_active,
+            'organizer_id': str(t.organizer_id) if t.organizer_id else None,
         })
 
     response_data = {

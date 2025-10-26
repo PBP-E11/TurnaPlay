@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'minimal.html' %}
 {% load static %}
 {% block meta %}
 <title>User Detail - TurnaPlay Admin</title>
@@ -222,7 +222,7 @@ function deleteUser(userId, username) {
         return;
     }
 
-    fetch(`/user/dashboard/users/${userId}/delete/`, {
+    fetch(`/accounts/dashboard/users/${userId}/delete/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': '{{ csrf_token }}',

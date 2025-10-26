@@ -2,156 +2,182 @@
 {% load static %}
 {% block content %}
 
-{% include "navbar.html" %}
-
-<div class="max-w-5xl mx-auto p-4 space-y-6">
-  <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-semibold">Tournament Invites</h1>
-
-    <!-- filter status -->
-    <form method="get" class="flex items-center gap-2">
-      <label class="text-sm">Status</label>
-      <select name="status" class="border rounded px-2 py-1" onchange="this.form.submit()">
-        <option value="all" {% if status == 'all' %}selected{% endif %}>All</option>
-        <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
-        <option value="accepted" {% if status == 'accepted' %}selected{% endif %}>Accepted</option>
-        <option value="rejected" {% if status == 'rejected' %}selected{% endif %}>Rejected</option>
-      </select>
-    </form>
+<!-- HERO -->
+<section class="bg-gradient-to-r from-indigo-600 to-purple-600">
+  <div class="max-w-6xl mx-auto px-6 py-20 md:py-24 text-white text-center">
+    <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight drop-shadow">
+      Tournament Invites
+    </h1>
+    <p class="mt-3 text-white/80 text-sm md:text-base">
+      Kelola undangan turnamen yang kamu terima sebagai anggota maupun yang kamu kirim sebagai leader.
+    </p>
   </div>
+</section>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <!-- Incoming -->
-    <section class="space-y-3">
-      <h2 class="font-semibold text-lg">Incoming</h2>
-      {% if incoming %}
-        {% for inv in incoming %}
-          <div class="border rounded p-3 flex justify-between items-center">
-            <div class="text-sm">
-              <div class="font-medium">
-                {{ inv.tournament_registration.team_name }}
-                •
-                {{ inv.tournament_registration.tournament.tournament_name }}
-              </div>
-              <div class="text-gray-500">
-                {{ inv.tournament_registration.tournament.tournament_format.name }}
-                ({{ inv.tournament_registration.tournament.tournament_format.team_size }}p)
-              </div>
-              <div class="text-xs mt-1">Status: <span class="uppercase">{{ inv.status }}</span></div>
-              <div class="text-xs">
-                <a class="underline"
-                   href="{% url 'tournaments:tournament-detail' inv.tournament_registration.tournament_id %}">
-                  Lihat turnamen
-                </a>
-              </div>
-            </div>
+<!-- CARD WRAP -->
+<div class="max-w-6xl mx-auto px-6 -mt-12 pb-16 relative z-10">
+  <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
 
-            <div class="flex items-center gap-2">
-              {% if inv.status == 'pending' %}
-                <button class="px-3 py-1 bg-green-600 text-white rounded"
-                        onclick="acceptInvite('{{ inv.id }}', '{{ inv.tournament_registration.tournament.tournament_format.game_id }}')">
-                  Accept
-                </button>
-                <button class="px-3 py-1 bg-gray-200 rounded" onclick="rejectInvite('{{ inv.id }}')">Reject</button>
-              {% else %}
-                <span class="text-xs text-gray-500">No actions</span>
-              {% endif %}
-            </div>
+    <!-- HEADER -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-8">
+      <div class="flex items-center gap-3">
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-indigo-100 text-indigo-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1h1a1 1 0 1 1 0 2h-1a5 5 0 0 1-4.58 4.98A6 6 0 0 1 13 16.92V19h3a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h3v-2.08A6 6 0 0 1 7.58 14.98 5 5 0 0 1 3 9H2a1 1 0 0 1 0-2h1V6Zm2 2v1a3 3 0 0 0 2.65 2.98A6 6 0 0 1 12 13a6 6 0 0 1 3.35-1.02A3 3 0 0 0 18 9V8H6Z"/>
+          </svg>
+        </span>
+        <h2 class="text-2xl font-semibold text-gray-800">Undangan</h2>
+      </div>
+
+      <!-- FILTER -->
+      <div class="relative" x-data="{open:false, val:'{{ status|default:'all' }}'}">
+        <label class="sr-only">Filter status</label>
+        <button type="button"
+                onclick="this.nextElementSibling.classList.toggle('hidden')"
+                class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition">
+          <span id="status-label">
+            {% if status == 'pending' %}Pending{% elif status == 'accepted' %}Accepted{% elif status == 'rejected' %}Rejected{% else %}Semua{% endif %}
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.127l3.71-3.896a.75.75 0 111.08 1.04l-4.24 4.46a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+
+        <!-- MENU -->
+        <div class="absolute right-0 mt-2 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/5 overflow-hidden hidden z-20">
+          <form id="filter-form" method="get">
+            <input type="hidden" name="status" id="status-input" value="{{ status|default:'all' }}">
+            <ul class="py-1 text-sm">
+              <li><button type="button" data-value="all"
+                         class="w-full text-left px-3 py-2 hover:bg-indigo-50">Semua</button></li>
+              <li><button type="button" data-value="pending"
+                         class="w-full text-left px-3 py-2 hover:bg-indigo-50">Pending</button></li>
+              <li><button type="button" data-value="accepted"
+                         class="w-full text-left px-3 py-2 hover:bg-indigo-50">Accepted</button></li>
+              <li><button type="button" data-value="rejected"
+                         class="w-full text-left px-3 py-2 hover:bg-indigo-50">Rejected</button></li>
+            </ul>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTS -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Incoming -->
+      <section>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-gray-800 text-lg">Incoming</h3>
+          <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+            {% if incoming %}{{ incoming|length }} invites{% else %}0 invites{% endif %}
+          </span>
+        </div>
+
+        {% if incoming %}
+          <ul class="space-y-3">
+            {% for inv in incoming %}
+              <li class="group border rounded-xl p-4 hover:shadow-md transition border-gray-200">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="min-w-0">
+                    <p class="font-medium text-gray-800">
+                      {{ inv.tournament_registration.team_name }}
+                      <span class="text-gray-400">•</span>
+                      {{ inv.tournament_registration.tournament.tournament_name }}
+                    </p>
+                    <p class="text-sm text-gray-500 mt-1">
+                      {{ inv.tournament_registration.tournament.tournament_format.name }}
+                    </p>
+                  </div>
+                  <div>
+                    {% if inv.status == 'pending' %}
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">Pending</span>
+                    {% elif inv.status == 'accepted' %}
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Accepted</span>
+                    {% else %}
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">Rejected</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 bg-gray-50">
+            Tidak ada undangan masuk.
           </div>
-        {% endfor %}
-      {% else %}
-        <p class="text-sm text-gray-500">No incoming invites.</p>
-      {% endif %}
-    </section>
+        {% endif %}
+      </section>
 
-    <!-- Outgoing -->
-    <section class="space-y-3">
-      <h2 class="font-semibold text-lg">Outgoing (as Leader)</h2>
-      {% if outgoing %}
-        {% for inv in outgoing %}
-          <div class="border rounded p-3 flex justify-between items-center">
-            <div class="text-sm">
-              <div class="font-medium">
-                To: {{ inv.user_account.display_name }} (@{{ inv.user_account.username }})
-              </div>
-              <div class="text-gray-500">
-                {{ inv.tournament_registration.team_name }} •
-                {{ inv.tournament_registration.tournament.tournament_name }}
-              </div>
-              <div class="text-xs mt-1">Status: <span class="uppercase">{{ inv.status }}</span></div>
-            </div>
+      <!-- Outgoing -->
+      <section>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-gray-800 text-lg">Outgoing</h3>
+          <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+            {% if outgoing %}{{ outgoing|length }} invites{% else %}0 invites{% endif %}
+          </span>
+        </div>
 
-            <div>
-              {% if inv.status == 'pending' %}
-                <button class="px-3 py-1 bg-red-600 text-white rounded"
-                        onclick="cancelInvite('{{ inv.id }}')">Cancel</button>
-              {% else %}
-                <span class="text-xs text-gray-500">No actions</span>
-              {% endif %}
-            </div>
+        {% if outgoing %}
+          <ul class="space-y-3">
+            {% for inv in outgoing %}
+              <li class="group border rounded-xl p-4 hover:shadow-md transition border-gray-200">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="min-w-0">
+                    <p class="font-medium text-gray-800">
+                      To: {{ inv.user_account.display_name }} (@{{ inv.user_account.username }})
+                    </p>
+                    <p class="text-sm text-gray-500 mt-1">
+                      {{ inv.tournament_registration.team_name }}
+                      <span class="text-gray-400">•</span>
+                      {{ inv.tournament_registration.tournament.tournament_name }}
+                    </p>
+                  </div>
+                  <div>
+                    {% if inv.status == 'pending' %}
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">Pending</span>
+                    {% elif inv.status == 'accepted' %}
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Accepted</span>
+                    {% else %}
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">Rejected</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 bg-gray-50">
+            Tidak ada undangan keluar.
           </div>
-        {% endfor %}
-      {% else %}
-        <p class="text-sm text-gray-500">No outgoing invites.</p>
-      {% endif %}
-    </section>
+        {% endif %}
+      </section>
+    </div>
   </div>
 </div>
 
-<!-- Widget -->
-{% include "game_account/select_widget.html" %}
-
-{% include "footer.html" %}
-
 <script>
-  // helper csrf
-  function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-  }
-
-  async function acceptInvite(inviteId, gameId){
-    showGameAccountWidget(gameId);
-    const handler = async (e) => {
-      const gaId = e.detail.id;
-      window.removeEventListener('gameaccount:selected', handler);
-      const resp = await fetch("{% url 'tournament_invite:api-accept' %}", {
-        method: "POST",
-        headers: {"Content-Type":"application/json", "X-CSRFToken": getCookie('csrftoken')},
-        body: JSON.stringify({invite_id: inviteId, game_account_id: gaId}),
-        credentials: "same-origin",
-      });
-      const j = await resp.json();
-      if (j.ok) location.reload();
-      else alert(j.error || "Accept failed");
-    };
-    window.addEventListener('gameaccount:selected', handler);
-  }
-
-  async function rejectInvite(inviteId){
-    const resp = await fetch("{% url 'tournament_invite:api-reject' %}", {
-      method: "POST",
-      headers: {"Content-Type":"application/json", "X-CSRFToken": getCookie('csrftoken')},
-      body: JSON.stringify({invite_id: inviteId}),
-      credentials: "same-origin",
+  // opsi dropdown
+  document.querySelectorAll('[data-value]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.getAttribute('data-value');
+      document.getElementById('status-input').value = val;
+      document.getElementById('status-label').textContent =
+        val === 'pending' ? 'Pending' :
+        val === 'accepted' ? 'Accepted' :
+        val === 'rejected' ? 'Rejected' : 'Semua';
+      // submit
+      document.getElementById('filter-form').submit();
     });
-    const j = await resp.json();
-    if (j.ok) location.reload();
-    else alert(j.error || "Reject failed");
-  }
-
-  async function cancelInvite(inviteId){
-    const resp = await fetch("{% url 'tournament_invite:api-cancel' %}", {
-      method: "POST",
-      headers: {"Content-Type":"application/json", "X-CSRFToken": getCookie('csrftoken')},
-      body: JSON.stringify({invite_id: inviteId}),
-      credentials: "same-origin",
-    });
-    const j = await resp.json();
-    if (j.ok) location.reload();
-    else alert(j.error || "Cancel failed");
-  }
+  });
+  // tutup menu saat klik di luar
+  document.addEventListener('click', (e) => {
+    const toggle = document.querySelector('[type="button"]+div');
+    const trigger = document.querySelector('[type="button"]');
+    if (!toggle || !trigger) return;
+    if (!toggle.contains(e.target) && !trigger.contains(e.target)) {
+      toggle.classList.add('hidden');
+    }
+  });
 </script>
 
 {% endblock %}

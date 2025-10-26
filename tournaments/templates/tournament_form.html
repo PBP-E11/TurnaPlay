@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% load static %} {% block content %} {% include 'navbar.html' %}
+{% extends 'base.html' %} {% load static %} {% block content %}
 
 <div class="max-w-3xl mx-auto px-4 py-12">
   <div class="bg-white rounded-2xl shadow-xl border border-black p-10">
@@ -12,7 +12,12 @@
     </div>
     <h1 class="text-3xl font-bold text-center text-[#494598]">{{ title }}</h1>
 
-    <form method="post" novalidate class="mt-8 space-y-6">
+    <form
+      method="post"
+      enctype="multipart/form-data"
+      novalidate
+      class="mt-8 space-y-6"
+    >
       {% csrf_token %}
       <div
         class="bg-white border border-gray-600 rounded-lg p-4 shadow-xs focus-within:ring-2 focus-within:ring-indigo-200"
@@ -135,4 +140,4 @@
   });
 </script>
 
-{% include 'footer.html' %} {% endblock %}
+{% endblock %}

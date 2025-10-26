@@ -15,4 +15,7 @@ urlpatterns = [
     
     path('api/tournaments/', views.tournament_list_json, name='tournament-list-json'),
     path('api/games/<uuid:game_id>/formats/', views.formats_for_game, name='api-game-formats'),
+
+    path('<uuid:pk>/update/', views.tournament_update, name='tournament-update'),
+    path('<uuid:pk>/delete/', views.tournament_delete, name='tournament-delete'),
 ]

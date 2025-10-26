@@ -1,0 +1,35 @@
+{% extends 'base.html' %} 
+{% block content %} 
+
+<main class="max-w-3xl mx-auto px-4 py-8 mt-14">
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-3xl font-bold font-['Montserrat'] mb-4">
+      Delete Tournament
+    </h1>
+    <p class="text-lg mb-6">
+      Are you sure you want to delete the tournament
+      <strong class="font-semibold">{{ tournament.tournament_name }}</strong>?
+    </p>
+    <p class="text-md text-red-600 mb-6">This action cannot be undone.</p>
+
+    <form method="POST">
+      {% csrf_token %}
+      <div class="flex gap-4">
+        <button
+          type="submit"
+          class="bg-red-600 text-white font-semibold font-['Montserrat'] px-6 py-2 rounded-lg shadow hover:bg-red-700 transition"
+        >
+          Yes, Delete
+        </button>
+        <a
+          href="{% url 'tournaments:tournament-detail' tournament.id %}"
+          class="bg-gray-300 text-gray-800 font-semibold font-['Montserrat'] px-6 py-2 rounded-lg shadow hover:bg-gray-400 transition"
+        >
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</main>
+
+{% endblock %}
