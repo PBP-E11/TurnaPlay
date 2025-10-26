@@ -17,13 +17,34 @@ def game_accounts_list_create(request):
     # GET -> list (supports ?game=<id>)
     if request.method == 'GET':
         game_id = request.GET.get('game')
-        if game_id:
-            qs = GameAccount.objects.filter(game__id=game_id, active=True)
-        elif request.user.is_authenticated:
-            qs = GameAccount.objects.filter(user=request.user)
+        show_all = request.GET.get('all')  # If present, show all including inactive
+        if show_all:
+            # Show all accounts for staff users or user's own accounts
+            if request.user.is_authenticated:
+                if request.user.is_staff:
+                    qs = GameAccount.objects.all()
+                else:
+                    qs = GameAccount.objects.filter(user=request.user)
+            else:
+                qs = GameAccount.objects.none()
         else:
-            qs = GameAccount.objects.none()
-        data = list(qs.values('id', 'user_id', 'game_id', 'ingame_name', 'active'))
+            # Only show active accounts
+            if game_id:
+                qs = GameAccount.objects.filter(game__id=game_id, active=True)
+            elif request.user.is_authenticated:
+                qs = GameAccount.objects.filter(user=request.user, active=True)
+            else:
+                qs = GameAccount.objects.none()
+        data = []
+        for ga in qs:
+            data.append({
+                'id': str(ga.id),
+                'user_id': ga.user_id,
+                'game_id': str(ga.game_id),
+                'game_name': ga.game.name,
+                'ingame_name': ga.ingame_name,
+                'active': ga.active
+            })
         return JsonResponse(data, safe=False, status=200)
 
     # POST -> create

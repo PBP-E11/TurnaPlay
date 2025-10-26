@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
 {% block content %}
+<!-- Navbar -->
+{% include 'navbar.html' %}
 <div class="p-6">
   <h1 class="text-2xl mb-2">{{ ga.ingame_name }}</h1>
   <p>Game: {{ ga.game }}</p>
   <p>User: {{ ga.user }}</p>
   <p>Active: {{ ga.active }}</p>
 </div>
+<!-- Footer -->
+{% include 'footer.html' %}
 {% endblock %}
