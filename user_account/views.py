@@ -124,23 +124,64 @@ def admin_user_detail(request, user_id):
 @login_required
 @require_http_methods(["POST"])
 def admin_delete_user(request, user_id):
-    """Admin permanently delete user"""
+    """Admin permanently delete user (CASCADE: will delete all their tournaments)"""
+    import logging
+    import traceback
+    
+    logger = logging.getLogger(__name__)
+    
     if not request.user.is_admin():
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
     
-    user = get_object_or_404(UserAccount, id=user_id)
+    try:
+        user = get_object_or_404(UserAccount, id=user_id)
+    except Exception as e:
+        logger.error(f'User not found: {str(e)}')
+        return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
     
     # Prevent admin from deleting themselves
     if user.id == request.user.id:
-        return JsonResponse({'success': False, 'error': 'Cannot delete your own account'})
+        return JsonResponse({'success': False, 'error': 'Cannot delete your own account'}, status=400)
     
-    username = user.username
-    user.delete()
-    
-    return JsonResponse({
-        'success': True, 
-        'message': f'User {username} has been permanently deleted'
-    })
+    try:
+        username = user.username
+        user_role = user.role
+        
+        # Check tournament count before deletion
+        tournament_count = 0
+        if user_role in ['organizer', 'admin']:
+            try:
+                tournament_count = Tournament.objects.filter(organizer=user).count()
+                logger.info(f'User {username} has {tournament_count} tournaments')
+            except Exception as e:
+                logger.error(f'Error counting tournaments: {str(e)}')
+        
+        # Attempt to delete the user
+        logger.info(f'Attempting to delete user: {username} (role: {user_role})')
+        user.delete()
+        logger.info(f'Successfully deleted user: {username}')
+        
+        # Success message
+        if tournament_count > 0:
+            message = f'User {username} and their {tournament_count} tournament(s) have been permanently deleted'
+        else:
+            message = f'User {username} has been permanently deleted'
+        
+        return JsonResponse({
+            'success': True, 
+            'message': message
+        })
+        
+    except Exception as e:
+        # Detailed error logging
+        error_trace = traceback.format_exc()
+        logger.error(f'Error deleting user {username}:')
+        logger.error(error_trace)
+        
+        return JsonResponse({
+            'success': False, 
+            'error': f'Database error: {str(e)}'
+        }, status=500)
 
 @login_required
 def admin_manage_tournaments(request):

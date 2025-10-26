@@ -84,7 +84,7 @@ class Tournament(models.Model):
     # One organizer can have many tournaments
     organizer = models.ForeignKey(
         UserAccount,
-        on_delete=models.PROTECT,  # Prevent deletion of organizer if they have tournaments
+        on_delete=models.CASCADE,  # Prevent deletion of organizer if they have tournaments
         related_name='organized_tournaments',
         verbose_name=_("Organizer"),
         limit_choices_to={'role': ['organizer', 'admin']}  # both admin and organizer can create tournament
