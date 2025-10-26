@@ -87,7 +87,7 @@ class Tournament(models.Model):
         on_delete=models.CASCADE, 
         related_name='organized_tournaments',
         verbose_name=_("Organizer"),
-        limit_choices_to={'role': ['organizer', 'admin']},
+        limit_choices_to={'role__in': ['organizer', 'admin']},
         null=True,
         blank=True,
     )
