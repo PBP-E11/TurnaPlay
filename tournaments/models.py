@@ -148,10 +148,10 @@ class Tournament(models.Model):
             )
         
         # Prevent past tournament dates
-        if self.tournament_date and self.tournament_date < timezone.localdate():
-            raise ValidationError(
-                {'tournament_date': _('Tournament date cannot be in the past.')}
-            )
+        # if self.tournament_date and self.tournament_date < timezone.localdate():
+        #     raise ValidationError(
+        #         {'tournament_date': _('Tournament date cannot be in the past.')}
+        #     )
 
     def get_absolute_url(self):
         """Returns the URL to access a detail record for this tournament."""
