@@ -26,7 +26,9 @@ def admin_manage_users(request):
     """Admin page to manage all users"""
     if not request.user.is_admin():
         return HttpResponseForbidden("You don't have permission to access this page.")
-    
+    # Get admin logged in
+    admin = request.user
+
     # Get filter parameters
     search = request.GET.get('search', '')
     role_filter = request.GET.get('role', '')
@@ -60,6 +62,7 @@ def admin_manage_users(request):
     users_page = paginator.get_page(page_number)
     
     context = {
+        'admin': admin,
         'users': users_page,
         'total_users': total_users,
         'active_users': active_users,

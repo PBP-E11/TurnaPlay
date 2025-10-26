@@ -115,7 +115,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     
     # Profile Picture
     profile_image = models.CharField(max_length=50, default='avatar1', help_text='Pilihan: avatar1, avatar2, avatar3')
-
+    
     # Active - untuk soft delete (tidak benar-benar hapus dari database)
     # False = akun dinonaktifkan/dihapus
     # required oleh django auth
