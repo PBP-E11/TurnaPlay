@@ -12,7 +12,12 @@
     </div>
     <h1 class="text-3xl font-bold text-center text-[#494598]">{{ title }}</h1>
 
-    <form method="post" novalidate class="mt-8 space-y-6">
+    <form
+      method="post"
+      enctype="multipart/form-data"
+      novalidate
+      class="mt-8 space-y-6"
+    >
       {% csrf_token %}
       <div
         class="bg-white border border-gray-600 rounded-lg p-4 shadow-xs focus-within:ring-2 focus-within:ring-indigo-200"

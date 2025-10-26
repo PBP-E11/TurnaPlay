@@ -1,4 +1,3 @@
-# In your_app/forms.py
 from django import forms
 from .models import Tournament, Game, TournamentFormat
 from django.utils import timezone
@@ -40,14 +39,14 @@ class TournamentCreationForm(forms.ModelForm):
             'tournament_name': forms.TextInput(attrs={'class': TAILWIND_INPUT, 'placeholder': 'e.g., Summer Cup 2025'}),
             'description': forms.Textarea(attrs={'class': TAILWIND_TEXTAREA, 'rows': 4, 'placeholder': 'Enter tournament rules, details, etc.'}),
             'prize_pool': forms.NumberInput(attrs={'class': TAILWIND_INPUT, 'placeholder': 'e.g., 5000000'}),
-            'banner': forms.URLInput(attrs={'class': TAILWIND_INPUT, 'placeholder': 'https://your-image-host.com/banner.png'}),
+            'banner': forms.FileInput(attrs={'class': TAILWIND_INPUT}),
             'team_maximum_count': forms.NumberInput(attrs={'class': TAILWIND_INPUT, 'placeholder': 'e.g., 16'}),
         }
 
         labels = {
             'prize_pool': 'Prize Pool (IDR)',
             'team_maximum_count': 'Maximum Team Entry',
-            'banner': 'Banner Image URL',
+            'banner': 'Banner Image',
         }
 
     def clean_tournament_date(self):

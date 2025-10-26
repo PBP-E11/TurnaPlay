@@ -9,11 +9,20 @@
     <p class="text-sm text-gray-600 mt-2">
       Date: {{ tournament.tournament_date }}
     </p>
+
+    {% if tournament.banner %}
     <img
-      src="{{ tournament.banner|default:static('image/BannerValo.png') }}"
+      src="{{ tournament.banner }}"
       alt="Banner"
       class="w-full h-64 object-cover mt-4 rounded-md"
     />
+    {% else %}
+    <img
+      src="{% static 'image/BannerValo.png' %}"
+      alt="Default Banner"
+      class="w-full h-64 object-cover mt-4 rounded-md"
+    />
+    {% endif %}
     <div class="mt-6">
       <h3 class="font-semibold">Description</h3>
       <p class="mt-2 text-gray-700">{{ tournament.description }}</p>

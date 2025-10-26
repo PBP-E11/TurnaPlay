@@ -16,6 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     # 1. Path for the Django Admin
@@ -32,3 +34,6 @@ urlpatterns = [
     # not matched by the apps above (e.g., /api/tournaments/)
     path('', include('tournaments.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,6 +1,6 @@
 {% load static %} {% static 'image/BannerValo.webp' as default_banner %}
 <article
-  class="bg-transparent rounded-lg overflow-hidden shadow-md transform hover:-translate-y-1 transition"
+  class="bg-transparent rounded-lg overflow-hidden shadow-md transform hover:-translate-y-1 transition {% if not tournament.is_active %}grayscale opacity-75{% endif %}"
 >
   <img
     data-js="banner"
@@ -15,24 +15,86 @@
     <p data-js="date" class="text-sm text-[#D20A0A] font-bold mt-2">
       {{ tournament.tournament_date }}
     </p>
-    <div class="flex gap-3 mt-2">
+
+    <div class="flex gap-3 mt-2 items-center flex-wrap">
       <a
         data-js="detail-url"
-        href="#"
-        class="inline-block text-sm bg-transparent border border-slate-400 text-[#494598] font-['Montserrat'] px-12 py-1 rounded-full font-semibold hover:bg-slate-200 hover:text-slate-900 transition"
+        href="{% url 'team:tournament_details' tournament.id %}"
+        class="inline-block w-full text-center text-sm bg-transparent border border-slate-400 text-[#494598] font-['Montserrat'] px-12 py-1 rounded-full font-semibold hover:bg-slate-200 hover:text-slate-900 transition"
       >
         Detail
       </a>
-      {% if user.is_authenticated and tournament.is_active %}
-      <button
-        data-tournament-id="{{ tournament.id }}"
-        data-js="register-btn"
-        type="button"
-        class="font-['Montserrat'] px-6 py-1 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition font-semibold"
-        aria-label="Daftar to tournament"
-      >
-        Daftar
-      </button>
+
+      {% if user.is_staff %}
+      <div class="flex items-center gap-2">
+        <a
+          href="{% url 'tournaments:tournament-delete' tournament.id %}"
+          class="flex-1 text-center text-sm bg-red-600 text-white font-['Montserrat'] px-4 py-1 rounded-full font-semibold hover:bg-red-700 transition"
+        >
+          Delete
+        </a>
+
+        {% if tournament.is_active %}
+        <a
+          href="{% url 'team:create_team_form' tournament.id %}"
+          data-tournament-id="{{ tournament.id }}"
+          data-js="register-btn"
+          class="flex-1 text-center text-sm font-['Montserrat'] px-4 py-1 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition font-semibold"
+          aria-label="Daftar to tournament"
+        >
+          Daftar
+        </a>
+        {% endif %}
+
+        <a
+          href="{% url 'tournaments:tournament-update' tournament.id %}"
+          class="flex-1 text-center text-sm bg-yellow-500 text-white font-['Montserrat'] px-4 py-1 rounded-full font-semibold hover:bg-yellow-600 transition"
+        >
+          Edit
+        </a>
+      </div>
+
+      {% elif user.is_organizer and tournament.organizer == user %}
+      <div class="flex items-center gap-2">
+        <a
+          href="{% url 'tournaments:tournament-delete' tournament.id %}"
+          class="flex-1 text-center text-sm bg-red-600 text-white font-['Montserrat'] px-4 py-1 rounded-full font-semibold hover:bg-red-700 transition"
+        >
+          Delete
+        </a>
+
+        {% if tournament.is_active %}
+        <a
+          href="{% url 'team:create_team_form' tournament.id %}"
+          data-tournament-id="{{ tournament.id }}"
+          data-js="register-btn"
+          class="flex-1 text-center text-sm font-['Montserrat'] px-4 py-1 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition font-semibold"
+          aria-label="Daftar to tournament"
+        >
+          Daftar
+        </a>
+        {% endif %}
+
+        <a
+          href="{% url 'tournaments:tournament-update' tournament.id %}"
+          class="flex-1 text-center text-sm bg-yellow-500 text-white font-['Montserrat'] px-4 py-1 rounded-full font-semibold hover:bg-yellow-600 transition"
+        >
+          Edit
+        </a>
+      </div>
+
+      {% elif user.is_authenticated and tournament.is_active %}
+      <div class="flex items-center gap-2">
+        <a
+          href="{% url 'team:create_team_form' tournament.id %}"
+          data-tournament-id="{{ tournament.id }}"
+          data-js="register-btn"
+          class="w-full text-center text-sm font-['Montserrat'] px-4 py-1 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition font-semibold"
+          aria-label="Daftar to tournament"
+        >
+          Daftar
+        </a>
+      </div>
       {% endif %}
     </div>
   </div>
