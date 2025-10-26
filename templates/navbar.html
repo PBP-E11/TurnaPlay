@@ -31,6 +31,11 @@
         >
           My Profile
         </a>
+        {% if user.is_authenticated and user.is_admin %}
+          <a href="/accounts/dashboard/" class="text-gray-500 text-sm hover:text-indigo-600 font-medium transition-colors">
+            Admin Dashboard
+          </a>
+        {% endif %}
       </div>
 
       <div class="hidden md:flex items-center space-x-4">
@@ -141,6 +146,11 @@
           class="text-gray-200 hover:bg-white/10 font-medium py-2 px-3 rounded-md"
           >My Profile</a
         >
+        {% if user.is_authenticated and user.role == 'admin' %}
+          <a href="/accounts/dashboard/" class="text-gray-200 hover:bg-white/10 font-medium py-2 px-3 rounded-md">
+            Admin Dashboard
+          </a>
+        {% endif %}
       </div>
 
       <div class="mt-4 pt-4 border-t border-indigo-400">
@@ -149,19 +159,19 @@
         {% if user.profile_image == "avatar1" %}
           <img
             class="h-9 w-9 rounded-full object-cover"
-            src="{% static 'images/profile_images/hero-estes.png' %}"
+            src="{% static 'images/profile_images/hero-hayabusa.png' %}"
             alt="{{ user.display_name }}"
           />
         {% elif user.profile_image == "avatar2" %}
           <img
             class="h-9 w-9 rounded-full object-cover"
-            src="{% static 'images/profile_images/hero-akai.png' %}"
+            src="{% static 'images/profile_images/hero-estes.png' %}"
             alt="{{ user.display_name }}"
           />
         {% else %}
           <img
             class="h-9 w-9 rounded-full object-cover"
-            src="{% static 'images/profile_images/hero-hayabusa.png' %}"
+            src="{% static 'images/profile_images/hero-akai.png' %}"
             alt="{{ user.display_name }}"
           />
         {% endif %}
