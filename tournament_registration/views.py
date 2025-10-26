@@ -4,10 +4,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.urls import reverse
+from django.core.exceptions import ValidationError
 from .models import TournamentRegistration, TeamMember
 from user_account.models import UserAccount
 from tournaments.models import Tournament
-from .forms import TeamNameForm, MemberForm, MemberForm
+from .forms import TeamNameForm, MemberForm, PreTeamMemberForm
 
 @require_http_methods(['GET', 'POST'])
 @login_required
@@ -16,8 +17,8 @@ def new_team_form(request: HttpRequest, tournament_id: uuid.UUID) -> HttpRespons
     tournament = get_object_or_404(Tournament, pk=tournament_id)
 
     # Initialize forms
-    team_form = TeamNameForm(initial=request.POST or None)
-    leader_form = MemberForm(
+    team_form = TeamNameForm(request.POST or None)
+    leader_form = PreTeamMemberForm(
         request.POST or None,
         user=request.user,
         tournament=tournament,
@@ -32,22 +33,10 @@ def new_team_form(request: HttpRequest, tournament_id: uuid.UUID) -> HttpRespons
         return redirect('team:edit_team_form', team_id=membership.team.id)
 
     # If tournament form is complete
-    if team_form.is_valid() and leader_form.is_valid() and request.method == 'POST':
-        if leader_form.cleaned_data['username'] != request.user.username:
-            return HttpResponseForbidden('Cannot create team as another user')
-        if leader_form.cleaned_data['game_account'].user != request.user:
-            return HttpResponseForbidden('This game account does not belong to the user logged in')
-
-        team_entry = team_form.save(commit=False)
-        team_entry.tournament = tournament
-        team_entry.save()
-
-        TeamMember.objects.create(
-            is_leader=True,
-            game_account=leader_form.cleaned_data['game_account'],
-            team=team_entry,
-        )
-        return edit_team_form(request, team_entry.id)
+    if request.method == 'POST':
+        team_entry = _try_create_team(team_form, leader_form, tournament)
+        if team_entry is not None:
+            return redirect('team:edit_team_form', team_id=team_entry.id)
 
     context = {
         'tournament': tournament,
@@ -70,6 +59,10 @@ def edit_team_form(request: HttpRequest, team_id: uuid.UUID) -> HttpResponse:
     if not _is_user_in_team(request.user, team):
         return HttpResponseForbidden('You are not part of this team')
 
+    # Handle case where team has no leader
+    if not leader:
+        return HttpResponseForbidden('Team has no leader, please contact support')
+
     # Forms
     team_form = TeamNameForm(request.POST or None, instance=team)
     leader_form = MemberForm(
@@ -79,13 +72,24 @@ def edit_team_form(request: HttpRequest, team_id: uuid.UUID) -> HttpResponse:
         instance=leader,
     )
 
-    if request.method == "POST" and team_form.is_valid():
-        # (optional) permission check: only allow team leader to rename
-        if leader and getattr(leader.game_account, "user", None) != request.user:
-            return HttpResponseForbidden("Only the team leader can edit the team.")
+    if request.method == "POST" and team_form.is_valid() and leader_form.is_valid():
+        # save any change
+        try:
+            team_form.save()
+            return redirect("team:edit_team_form", team_id=team.id)
 
-        # save name change
-        team_form.save()
+        except Exception as e:
+            # Log the actual error for admin debugging
+            print(f"Team save error: {e}")
+
+            # User-friendly message that doesn't reveal internals
+            team_form.add_error(
+                None, 
+                'Unable to save team details. This might be because the team name already exists, '
+                'or there may be a system issue. Please try a different name or contact support.'
+            )
+        leader_form.save() # Should never fail after validation
+
         # redirect to the same page to avoid double submit
         return redirect("team:edit_team_form", team_id=team.id)
 
@@ -159,6 +163,14 @@ def kick_member(request: HttpRequest, team_id: uuid.UUID):
     except TournamentRegistration.DoesNotExist:
         return JsonResponse({'detail': 'Not found'}, status=404)
 
+@require_http_methods(["GET"])
+def tournament_details(request: HttpRequest, tournament_id: uuid.UUID) -> HttpResponse:
+    tournament = get_object_or_404(Tournament, pk=tournament_id)
+    context = {
+        'tournament': tournament
+    }
+    return render(request, 'team/tournament_details.html', context)
+
 # Mksh karla :>
 def _is_user_team_leader(user: UserAccount, team: TournamentRegistration) -> bool:
     """
@@ -177,10 +189,28 @@ def _is_user_in_team(user: UserAccount, team: TournamentRegistration) -> bool:
         game_account__user=user,
     ).exists()
 
-@require_http_methods(["GET"])
-def tournament_details(request: HttpRequest, tournament_id: uuid.UUID) -> HttpResponse:
-    tournament = get_object_or_404(Tournament, pk=tournament_id)
-    context = {
-        'tournament': tournament
-    }
-    return render(request, 'team/tournament_details.html', context)
+def _try_create_team(team_form: TeamNameForm, leader_form: PreTeamMemberForm, tournament: Tournament) -> TournamentRegistration | None:
+    if (not team_form.is_valid()) or (not leader_form.is_valid()):
+        return
+    try:
+        team_entry = team_form.save(commit=False)
+        team_entry.tournament = tournament
+        team_entry.save()
+    except Exception as e:
+        # Log the actual error for admin debugging
+        print(f"Team save error: {e}")
+
+        # User-friendly message
+        team_form.add_error(
+            'team_name',
+            ValidationError('Unable to create team. This might be because the team name already exists, '
+            'or there may be a system issue. Please try a different name or contact support.')
+        )
+        return
+
+    try:
+        leader_form.save(team=team_entry) # Should never fail after validation, but oh well
+        return team_entry
+    except:
+        team_entry.delete()
+        raise
