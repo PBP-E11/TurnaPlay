@@ -25,7 +25,7 @@
         </div>
       </div>
 
-      <p>
+      <p class="whitespace-pre-line">
       {{ tournament.description }}
       </p>
     </div>
@@ -56,7 +56,7 @@
       </div>
     </div>
 
-    <p class="text-justify">
+    <p class="text-justify whitespace-pre-line">
     {{ tournament.description }}
     </p>
 
@@ -64,7 +64,7 @@
 </header>
 
 <main class="flex items-center flex-col">
-  <div class="flex justify-center gap-4 w-[80rem] mx-10 my-5 flex-col xl:flex-row">
+  <div class="flex justify-center gap-4 mx-10 my-5 flex-col xl:flex-row w-[20rem] md:w-[40rem] xl:w-[80rem]">
     <!-- Card 1 -->
     <div class="flex flex-grow items-center gap-3 border border-gray-500 rounded-xl px-5 py-3">
       <div class="w-8 h-8 rounded-full bg-blue-600">
@@ -99,6 +99,7 @@
     </div>
   </div>
 
+{% if tournament.status == 'ongoing' %}
   {% if user.is_authenticated %}
   <a href="{% url 'team:create_team_form' tournament.id %}">
     <button class="w-64 h-16 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-2xl my-5">
@@ -106,7 +107,13 @@
     </button>
   </a>
   {% else %}
+  <a href="{% url 'user_account:login' %}?next={{ request.path }}">
+    <button class="w-64 h-16 bg-indigo-800 hover:bg-indigo-900 text-white font-semibold rounded-2xl my-5">
+      Log In untuk Daftar
+    </button>
+  </a>
   {% endif %}
+{% endif %}
 </main>
 
 {% endblock content %}
