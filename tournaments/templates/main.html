@@ -200,7 +200,7 @@
 
           {% if user.is_authenticated %}
           <a
-            href="/create/{{ tournament.id }}"
+            href="#"
             data-js="register-btn"
             type="button"
             class="font-['Montserrat'] px-6 py-1 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition font-semibold"
@@ -288,10 +288,8 @@
           dateEl.textContent = safeText(tournament.tournament_date);
         }
         if (detailEl) {
-          if (tournament.detail_url) {
-            detailEl.href = tournament.detail_url;
-          } else if (tournament.id) {
-            detailEl.href = `/tournaments/${tournament.id}/`;
+          if (tournament.id) {
+            detailEl.href = `/team/tournament_details/${tournament.id}`;
           }
         }
 
@@ -323,14 +321,12 @@
           // C. Create Daftar button (if allowed)
           // We check this *after* Delete to get your requested order
           if (canRegister) {
-            const registerBtn = document.createElement("button");
-            registerBtn.type = "button";
-            registerBtn.dataset.tournamentId = tournament.id;
-            registerBtn.dataset.js = "register-btn"; // for event delegation
-            registerBtn.className =
+            const registerLink = document.createElement("a");
+            registerLink.href = `/team/create/${tournament.id}`; // Use tournament_registration URL
+            registerLink.className =
               "flex-1 text-center font-['Montserrat'] px-4 py-1 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition font-semibold";
-            registerBtn.textContent = "Daftar";
-            actionRow.appendChild(registerBtn);
+            registerLink.textContent = "Daftar";
+            actionRow.appendChild(registerLink);
           }
 
           // D. Create Edit button (if allowed)
@@ -402,14 +398,10 @@
         // Navigate to the registration creation endpoint.
         // If the server-rendered element has an href (we render anchors), prefer it.
         ev.preventDefault();
-        const href = btn.href || null;
-        const tid = btn.dataset.tournamentId || null;
         try {
-          if (href) {
-            globalThis.location.href = href;
-          } else if (tid) {
-            // use the tournament_registration app prefix ('team/')
-            globalThis.location.href = `/team/create/${tid}`;
+          // Since we changed to <a> tags, we can just follow the href
+          if (btn.href) {
+            globalThis.location.href = btn.href;
           }
         } catch (error_) {
           console.error("Delegated navigation to registration failed", error_);
