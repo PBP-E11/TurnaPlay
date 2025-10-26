@@ -46,19 +46,19 @@
             {% if user.profile_image == "avatar1" %}
               <img
                 class="h-9 w-9 rounded-full object-cover"
-                src="{% static 'images/profile_images/hero-estes.png' %}"
+                src="{% static 'images/profile_images/hero-hayabusa.png' %}"
                 alt="{{ user.display_name }}"
               />
             {% elif user.profile_image == "avatar2" %}
               <img
                 class="h-9 w-9 rounded-full object-cover"
-                src="{% static 'images/profile_images/hero-akai.png' %}"
+                src="{% static 'images/profile_images/hero-estes.png' %}"
                 alt="{{ user.display_name }}"
               />
             {% else %}
               <img
                 class="h-9 w-9 rounded-full object-cover"
-                src="{% static 'images/profile_images/hero-hayabusa.png' %}"
+                src="{% static 'images/profile_images/hero-akai.png' %}"
                 alt="{{ user.display_name }}"
               />
             {% endif %}

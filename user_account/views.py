@@ -191,7 +191,9 @@ def admin_manage_tournaments(request):
     """Admin page to manage all tournaments"""
     if not request.user.is_admin():
         return HttpResponseForbidden("You don't have permission to access this page.")
-    
+    # Get admin logged in
+    admin = request.user
+
     # Get filter parameters
     search = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
@@ -246,6 +248,7 @@ def admin_manage_tournaments(request):
     tournaments_page = paginator.get_page(page_number)
     
     context = {
+        'admin': admin,
         'tournaments': tournaments_page,
         'total_tournaments': total_tournaments,
         'active_tournaments': active_tournaments,
