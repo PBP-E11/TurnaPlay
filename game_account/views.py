@@ -18,23 +18,18 @@ def game_accounts_list_create(request):
     if request.method == 'GET':
         game_id = request.GET.get('game')
         show_all = request.GET.get('all')  # If present, show all including inactive
-        if show_all:
-            # Show all accounts for staff users or user's own accounts
+        if game_id:
+            # Only show user's accounts for specific game (even when filtered)
             if request.user.is_authenticated:
-                if request.user.is_staff:
-                    qs = GameAccount.objects.all()
-                else:
-                    qs = GameAccount.objects.filter(user=request.user)
+                qs = GameAccount.objects.filter(game__id=game_id, user=request.user, active=True)
             else:
                 qs = GameAccount.objects.none()
+        elif request.user.is_authenticated:
+            # Show all of user's active accounts
+            qs = GameAccount.objects.filter(user=request.user, active=True)
         else:
-            # Only show active accounts
-            if game_id:
-                qs = GameAccount.objects.filter(game__id=game_id, active=True)
-            elif request.user.is_authenticated:
-                qs = GameAccount.objects.filter(user=request.user, active=True)
-            else:
-                qs = GameAccount.objects.none()
+            qs = GameAccount.objects.none()
+
         data = []
         for ga in qs:
             data.append({
