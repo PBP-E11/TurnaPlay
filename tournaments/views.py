@@ -1,3 +1,4 @@
+
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.core.paginator import Paginator
@@ -76,43 +77,78 @@ def tournament_create(request):
             return redirect(reverse('tournaments:show_main'))
     else:
         form = TournamentCreationForm()
+    return render(request, 'tournament_form.html', {
+        'form': form,
+        'title': 'Create New Tournament',
+        'submit_label': 'Create Tournament'
+    })
 
-    return render(request, 'tournament_form.html', {'form': form, 'title': 'Create New Tournament'})
+@login_required
+def tournament_update_confirm(request, pk):
+    """Confirmation page before updating a tournament."""
+    tournament = get_object_or_404(Tournament, pk=pk)
+
+    is_admin = request.user.is_staff
+    is_organizer = hasattr(request.user, 'is_organizer') and request.user.is_organizer()
+    is_owner = (tournament.organizer == request.user)
+    if not (is_admin or (is_organizer and is_owner)):
+        return HttpResponseForbidden("You do not have permission to edit this tournament.")
+
+    if request.method == 'POST':
+        # On confirmation, redirect to the actual update form
+        return redirect(reverse('tournaments:tournament-update', args=[tournament.pk]))
+
+    return render(request, 'tournament_confirm_update.html', {'tournament': tournament})
 
 @login_required
 def tournament_update(request, pk):
     """View to update an existing tournament."""
     tournament = get_object_or_404(Tournament, pk=pk)
-
-    # --- PERMISSION CHECK ---
+    
+   
+    original_banner_url = tournament.banner
+  
     is_admin = request.user.is_staff
     is_organizer = hasattr(request.user, 'is_organizer') and request.user.is_organizer()
     is_owner = (tournament.organizer == request.user)
 
-    # Allow if user is an Admin OR (is an Organizer AND is the owner)
     if not (is_admin or (is_organizer and is_owner)):
         return HttpResponseForbidden("You do not have permission to edit this tournament.")
-    # --- END CHECK ---
+  
         
     if request.method == 'POST':
-        # Pass instance=tournament to update the existing object
         form = TournamentCreationForm(request.POST, request.FILES, instance=tournament)
+        
         if form.is_valid():
-            t = form.save(commit=False)
+            # t is the 'tournament' object, but its banner field is
+            # now None or False because no new file was uploaded.
+            t = form.save(commit=False) 
+            
             banner_file = request.FILES.get('banner')
+            
             if banner_file:
+                # NEW FILE: Save it and set the new URL
                 from django.core.files.storage import default_storage
                 save_path = f"banners/{banner_file.name}"
                 name = default_storage.save(save_path, banner_file)
                 t.banner = default_storage.url(name)
-            t.save()
-            return redirect(reverse('tournaments:tournament-detail', args=[tournament.pk]))
+            else:
+              
+                # NO NEW FILE: Restore the URL we saved earlier.
+                t.banner = original_banner_url
+            
+            t.save() # Save the object
+            
+            return redirect(reverse('tournaments:show_main'))
     else:
-        # Pre-populate the form with the tournament's existing data
+        # GET request: Pre-populate form
         form = TournamentCreationForm(instance=tournament)
-
-    # Reuse the same form template
-    return render(request, 'tournament_form.html', {'form': form, 'title': f'Edit {tournament.tournament_name}'})
+        
+    return render(request, 'tournament_form.html', {
+        'form': form,
+        'title': f'Edit {tournament.tournament_name}',
+        'submit_label': 'Update Tournament' 
+    })
 
 # --- NEW VIEW ---
 @login_required
