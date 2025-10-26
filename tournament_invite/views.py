@@ -80,10 +80,33 @@ def invite_list(request: HttpRequest) -> HttpResponse:
     incoming = incoming.filter(status_filter).order_by("-created_at")
     outgoing = outgoing.filter(status_filter).order_by("-created_at")
 
+    leader_teams = (
+        TournamentRegistration.objects
+        .filter(
+            teammember__game_account__user=request.user,
+            teammember__is_leader=True,
+        )
+        .select_related(
+            "tournament",
+            "tournament__tournament_format",
+            "tournament__tournament_format__game",
+        )
+        .distinct()
+    )
+
+    user_game_accounts = (
+        GameAccount.objects
+        .filter(user=request.user, active=True)
+        .select_related("game")
+        .order_by("game__name", "ingame_name")
+    )
+
     context = {
         "incoming": incoming,
         "outgoing": outgoing,
         "status": status or "all",
+        "leader_teams": leader_teams,
+        "game_accounts": user_game_accounts,
     }
     return render(request, "tournament_invite/invite_list.html", context)
 
