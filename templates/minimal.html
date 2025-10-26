@@ -10,17 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Krona+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Krona+One&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   </head>
-  <body class="flex flex-col min-h-screen">
-    <!-- Fixed Navbar -->
-    {% include 'navbar.html' %}
-
-    <!-- Main Content -->
-    <main class="flex-grow pt-16">
-      {% block content %}{% endblock content %}
-    </main>
-
-    <!-- Toasts, Footers, etc -->
+  <body>
+    {% block content %}{% endblock content %}
     {% include 'tournament_invite/_toast_poll.html' %}
-    {% include 'footer.html' %}
   </body>
 </html>
