@@ -83,8 +83,8 @@ def invite_list(request: HttpRequest) -> HttpResponse:
     leader_teams = (
         TournamentRegistration.objects
         .filter(
-            teammember__game_account__user=request.user,
-            teammember__is_leader=True,
+            members__game_account__user=request.user,
+            members__is_leader=True,
         )
         .select_related(
             "tournament",
