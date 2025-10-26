@@ -394,7 +394,7 @@ def profile_view(request):
     
     # Get tournaments where user is a participant
     tournaments = Tournament.objects.filter(
-        participants=user
+        registrations__members__game_account__user=user
     ).select_related('organizer', 'tournament_format__game')
     context = {
         'user': user,

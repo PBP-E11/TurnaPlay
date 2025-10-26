@@ -164,6 +164,12 @@ class Tournament(models.Model):
         """Returns the current number of registered participants."""
         return self.participants.count()
 
+    @property
+    def status(self):
+        if self.tournament_date and self.tournament_date < timezone.localdate():
+            return "selesai"
+        return "ongoing"
+
 
 class TournamentParticipant(models.Model):
     """

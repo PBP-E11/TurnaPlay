@@ -16,6 +16,9 @@ urlpatterns = [
     path('api/tournaments/', views.tournament_list_json, name='tournament-list-json'),
     path('api/games/<uuid:game_id>/formats/', views.formats_for_game, name='api-game-formats'),
 
-    path('<uuid:pk>/update/', views.tournament_update, name='tournament-update'),
     path('<uuid:pk>/delete/', views.tournament_delete, name='tournament-delete'),
+    # Actual update form view
+    path('<uuid:pk>/update/', views.tournament_update, name='tournament-update'),
+    # Confirmation step shown before allowing the update
+    path('<uuid:pk>/update/confirm/', views.tournament_update_confirm, name='tournament-update-confirm'),
 ]
