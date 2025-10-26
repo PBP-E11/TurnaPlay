@@ -311,7 +311,9 @@
           // B. Create Delete button (if allowed)
           if (canEditDelete) {
             const deleteLink = document.createElement("a");
-            deleteLink.href = `/tournaments/${tournament.id}/delete/`;
+            // The delete URL is registered at the root as '<uuid:pk>/delete/' in tournaments.urls
+            // so the correct path for client-side cards is '/<id>/delete/'.
+            deleteLink.href = `/${tournament.id}/delete/`;
             deleteLink.className =
               "flex-1 text-center text-sm bg-red-600 text-white font-['Montserrat'] px-4 py-1 rounded-full font-semibold hover:bg-red-700 transition";
             deleteLink.textContent = "Delete";
@@ -332,7 +334,7 @@
           // D. Create Edit button (if allowed)
           if (canEditDelete) {
             const editLink = document.createElement("a");
-            editLink.href = `/tournaments/${tournament.id}/update/`;
+            editLink.href = `/${tournament.id}/update/confirm/`;
             editLink.className =
               "flex-1 text-center text-sm bg-yellow-500 text-white font-['Montserrat'] px-4 py-1 rounded-full font-semibold hover:bg-yellow-600 transition";
             editLink.textContent = "Edit";
